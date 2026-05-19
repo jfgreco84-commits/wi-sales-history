@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DBW Wisconsin Sales Command Center</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --navy:#050e1d;--navy2:#0a1628;--navy3:#0f2040;--card:#0d1f38;
+  --gold:#c9a84c;--gold2:#e8c84a;--gold3:#f5d76e;
+  --green:#2ecc71;--red:#e74c3c;--blue:#5ba3e8;--purple:#9b59b6;
+  --text:#e8ecf0;--muted:#7a9bbf;--border:#1a3a5c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;overflow-x:hidden}
+.hdr{background:linear-gradient(135deg,var(--navy2),var(--navy3));border-bottom:3px solid var(--gold);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:100}
+.hdr-logo{font-size:1.6rem;font-weight:900;color:var(--gold);letter-spacing:2px}
+.hdr-logo span{color:#fff}
+.badge{display:inline-block;background:var(--gold);color:var(--navy);font-size:0.62rem;font-weight:900;letter-spacing:1.5px;padding:3px 8px;border-radius:20px;vertical-align:middle;text-transform:uppercase}
+.hdr-meta{font-size:0.7rem;color:var(--muted);margin-top:2px}
+.hdr-kpis{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.hk{text-align:right}.hk .v{font-size:1.1rem;font-weight:900;color:var(--gold2)}.hk .l{font-size:0.57rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.nav{background:var(--navy2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:0}
+.nav-btn{background:none;border:none;color:var(--muted);padding:11px 18px;cursor:pointer;font-size:0.78rem;font-weight:700;letter-spacing:.5px;border-bottom:3px solid transparent;transition:all .2s;text-transform:uppercase}
+.nav-btn:hover{color:var(--gold);border-bottom-color:rgba(200,168,76,.4)}
+.nav-btn.active{color:var(--gold2);border-bottom-color:var(--gold2)}
+.bc{background:var(--navy2);padding:7px 24px;font-size:0.75rem;color:var(--muted);display:flex;gap:5px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.bc a{color:var(--muted);cursor:pointer;transition:color .2s}.bc a:hover{color:var(--gold2)}
+.bc .sep{color:var(--border)}.bc .cur{color:var(--text);font-weight:700}
+.ybadge{background:var(--gold);color:var(--navy);border-radius:10px;padding:1px 7px;font-weight:800;font-size:0.72rem}
+.view{display:none;padding:18px 24px;max-width:1400px;margin:0 auto}
+.view.on{display:block}
+.kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-bottom:18px}
+.kc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 15px;position:relative;overflow:hidden}
+.kc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kc.g::before{background:var(--gold)}.kc.gr::before{background:var(--green)}.kc.re::before{background:var(--red)}.kc.bl::before{background:var(--blue)}.kc.pu::before{background:var(--purple)}
+.kl{font-size:0.59rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px}
+.kv{font-size:1.55rem;font-weight:900;line-height:1;margin-bottom:2px}
+.kv.g{color:var(--gold2)}.kv.gr{color:var(--green)}.kv.re{color:var(--red)}.kv.bl{color:var(--blue)}.kv.w{color:#fff}.kv.pu{color:var(--purple)}
+.ks{font-size:0.62rem;color:var(--muted)}
+.cc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px}
+.ct{font-size:0.73rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.ct .note{color:var(--muted);font-weight:400;font-size:0.62rem;text-transform:none;letter-spacing:0}
+.cw{position:relative;height:260px}.cw.tall{height:320px}.cw.sm{height:180px}.cw.med{height:210px}
+.two{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-bottom:14px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+@media(max-width:900px){.two,.three{grid-template-columns:1fr}}
+.tw{overflow-x:auto;margin-bottom:14px}
+.tbl{width:100%;border-collapse:collapse;font-size:0.82rem}
+.tbl th{background:var(--navy3);color:var(--gold);font-size:0.62rem;text-transform:uppercase;letter-spacing:1px;padding:9px 11px;text-align:left;border-bottom:2px solid var(--border);white-space:nowrap}
+.tbl td{padding:8px 11px;border-bottom:1px solid var(--border);white-space:nowrap}
+.tbl tr:hover td{background:rgba(200,168,76,.06);cursor:pointer}
+.tbl td.pos{color:var(--green);font-weight:700}.tbl td.neg{color:var(--red);font-weight:700}
+.tbl td.g{color:var(--gold2);font-weight:700}.tbl td.bl{color:var(--blue);font-weight:700}.tbl td.hi{color:#fff;font-weight:700}.tbl td.pu{color:var(--purple)}
+.tbl td.rk{color:var(--muted);font-size:0.73rem;font-weight:700;width:28px}
+.tbl td.rk.g1{color:var(--gold2)}.tbl td.rk.g2{color:#aaa}.tbl td.rk.g3{color:#cd7f32}
+.tbl tr.tot td{background:var(--navy3);color:var(--gold2);font-weight:700;border-top:2px solid var(--gold)}
+.tbl tr.hi2 td{background:rgba(200,168,76,.1)}
+.yg{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:9px;margin-bottom:18px}
+.yc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:all .2s;text-align:center}
+.yc:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 4px 18px rgba(200,168,76,.15)}
+.yc.best{border-color:var(--gold2);box-shadow:0 0 12px rgba(200,168,76,.3)}
+.yc .yy{font-size:1.05rem;font-weight:900;color:var(--gold2);margin-bottom:3px}
+.yc .ys{font-size:0.9rem;font-weight:700;color:#fff}
+.yc .yt{font-size:0.6rem;margin-top:3px;font-weight:700}
+.yc .yt.up{color:var(--green)}.yc .yt.dn{color:var(--red)}.yc .yt.fl{color:var(--muted)}
+.mg{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-bottom:14px}
+@media(max-width:600px){.mg{grid-template-columns:repeat(3,1fr)}}
+.mp{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 5px;text-align:center;cursor:pointer;transition:all .2s}
+.mp:hover{border-color:var(--gold);background:rgba(200,168,76,.08)}
+.mp .mn{font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase}
+.mp .mv{font-size:0.85rem;font-weight:900;color:var(--gold2);margin-top:2px}
+.mp .mc{font-size:0.58rem;margin-top:2px;font-weight:700}
+.mp .mc.up{color:var(--green)}.mp .mc.dn{color:var(--red)}.mp .mc.fl{color:var(--muted)}
+.sec{font-size:0.7rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1.5px;margin:14px 0 8px;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:var(--border)}
+.alert{background:rgba(200,168,76,.08);border:1px solid rgba(200,168,76,.25);border-radius:8px;padding:9px 13px;font-size:0.77rem;color:var(--muted);margin-bottom:14px}
+.rbw{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.rb{background:var(--navy3);border:1px solid var(--gold);border-radius:8px;padding:7px 11px;font-size:0.7rem}
+.rb .rl{color:var(--muted);font-size:0.58rem;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:2px}
+.rb .rv{color:var(--gold2);font-weight:700}.rb .rs{color:var(--muted);font-size:0.6rem}
+.bb{background:var(--navy3);border:1px solid var(--border);color:var(--muted);padding:7px 13px;border-radius:6px;cursor:pointer;font-size:0.77rem;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:5px;margin-bottom:14px}
+.bb:hover{border-color:var(--gold);color:var(--gold)}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--navy)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-logo">&#9670; DBW <span>WISCONSIN</span> &nbsp;<span class="badge">GSM Command Center</span> &nbsp;<span class="badge" style="background:#1a3a5c;color:var(--blue)">2016&#8211;2025</span></div>
+    <div class="hdr-meta">10 Years &middot; All-Time Historical Intelligence &middot; Source of Truth: COO Excel &middot; Rep Data: 2016&#8211;2025 &middot; Updated May 2026</div>
+  </div>
+  <div class="hdr-kpis">
+    <div class="hk"><div class="v" id="hAll">&#8212;</div><div class="l">All-Time Revenue</div></div>
+    <div class="hk"><div class="v" id="hBest">&#8212;</div><div class="l">Best Year</div></div>
+    <div class="hk"><div class="v" id="hYoY">&#8212;</div><div class="l">2025 vs 2024</div></div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" id="nb-home" onclick="showTab('home')">&#127968; Office Overview</button>
+  <button class="nav-btn" id="nb-reps" onclick="showTab('reps')">&#128101; Rep Roster</button>
+</div>
+
+<div class="bc" id="bc"><span class="cur">&#127968; WI Office Overview</span></div>
+
+<!-- HOME VIEW -->
+<div class="view on" id="v-home">
+  <div class="alert" id="homeAlert"></div>
+  <div class="kg" id="homeKpis"></div>
+  <div class="sec">All-Time Records</div>
+  <div class="rbw" id="homeRec"></div>
+  <div class="sec">Click a Year to Drill In</div>
+  <div class="yg" id="yearGrid"></div>
+  <div class="cc">
+    <div class="ct">&#128202; Annual Office Net Sales &#8212; 2016 to 2025 <span class="note">(click bar to drill into year)</span></div>
+    <div class="cw tall"><canvas id="annualChart"></canvas></div>
+  </div>
+  <div class="two">
+    <div class="cc"><div class="ct">&#128200; Year-Over-Year Growth Rate (%)</div><div class="cw"><canvas id="growthChart"></canvas></div></div>
+    <div class="cc"><div class="ct">&#128197; 10-Year Average by Month</div><div class="cw"><canvas id="avgChart"></canvas></div></div>
+  </div>
+  <div class="sec">&#127942; All-Time Best Months (Top 25)</div>
+  <div class="tw"><table class="tbl" id="tAllTime"></table></div>
+  <div class="sec">&#128197; Best Year for Each Month</div>
+  <div class="tw"><table class="tbl" id="tBestMo"></table></div>
+</div>
+
+<!-- YEAR VIEW -->
+<div class="view" id="v-year">
+  <button class="bb" onclick="backToHome()">&#8592; Back to All Years</button>
+  <div class="kg" id="yearKpis"></div>
+  <div class="sec">Monthly Breakdown &#8212; Click a Month to Compare Across All Years</div>
+  <div class="mg" id="moPills"></div>
+  <div class="two">
+    <div class="cc"><div class="ct" id="yrChartTitle">Monthly Breakdown</div><div class="cw"><canvas id="yrMoChart"></canvas></div></div>
+    <div class="cc"><div class="ct">Month-over-Prior-Year Change (%)</div><div class="cw"><canvas id="yrYoYChart"></canvas></div></div>
+  </div>
+  <div class="sec" id="repSecTitle" style="display:none">Rep Breakdown</div>
+  <div id="repYearSection" style="display:none">
+    <div class="tw"><table class="tbl" id="tRepYear"></table></div>
+  </div>
+  <div class="sec">Full Year Detail</div>
+  <div class="tw"><table class="tbl" id="tYearDetail"></table></div>
+</div>
+
+<!-- MONTH VIEW -->
+<div class="view" id="v-month">
+  <button class="bb" id="moBk" onclick="">&#8592; Back to Year</button>
+  <div class="kg" id="moKpis"></div>
+  <div class="cc"><div class="ct" id="moChartTitle">Net Sales &#8212; All Years</div><div class="cw"><canvas id="moChart"></canvas></div></div>
+  <div class="sec" id="moTableTitle">Year-by-Year Results</div>
+  <div class="tw"><table class="tbl" id="tMoCross"></table></div>
+</div>
+
+<!-- REPS VIEW -->
+<div class="view" id="v-reps">
+  <div class="alert">Rep data covers <strong>2016&#8211;2026</strong> — 11 years. <strong>44 reps tracked</strong> (4 new in 2026: CHRIS K, NICO T, GEOFFREY N, ANNISSA B).</div>
+  <div class="kg" id="repsKpis"></div>
+  <div class="sec">&#127942; All-Time Rep Leaderboard &#8212; 40 Reps (2016&#8211;2025)</div>
+  <div class="tw"><table class="tbl" id="tReps"></table></div>
+</div>
+
+<!-- REP DETAIL VIEW -->
+<div class="view" id="v-repdetail">
+  <button class="bb" onclick="showTab('reps')">&#8592; Back to Rep Roster</button>
+  <div class="kg" id="rdKpis"></div>
+  <div class="cc"><div class="ct" id="rdChartTitle">Annual Sales</div><div class="cw"><canvas id="rdChart"></canvas></div></div>
+  <div class="sec" id="rdDetailSec">Monthly Breakdown by Year</div>
+  <div class="tw"><table class="tbl" id="tRepDetail"></table></div>
+</div>
+
+<script>
+// ============================================================
+// DATA — SOURCE OF TRUTH: COO Excel + JSON CRM
+// ============================================================
+const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+const MONTH_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const YEARS = [2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026];
+
+const NET = {
+  2016:{JAN:85861,FEB:89752,MAR:247111,APR:97824,MAY:303931,JUN:104760,JUL:101033,AUG:340353,SEP:67774,OCT:192675,NOV:117319,DEC:94242},
+  2017:{JAN:93209,FEB:104786,MAR:280182,APR:208981,MAY:307711,JUN:139598,JUL:166710,AUG:402490,SEP:114197,OCT:306525,NOV:139481,DEC:156389},
+  2018:{JAN:189284,FEB:125960,MAR:341665,APR:152509,MAY:449957,JUN:160159,JUL:158472,AUG:504936,SEP:117653,OCT:367969,NOV:72742,DEC:162804},
+  2019:{JAN:180272,FEB:143882,MAR:407000,APR:231134,MAY:382214,JUN:210381,JUL:157515,AUG:570153,SEP:150103,OCT:494038,NOV:134486,DEC:107884},
+  2020:{JAN:215535,FEB:181460,MAR:536424,APR:228883,MAY:272930,JUN:530323,JUL:171867,AUG:692349,SEP:143153,OCT:452641,NOV:124829,DEC:211596},
+  2021:{JAN:179257,FEB:268836,MAR:687432,APR:187206,MAY:496631,JUN:339718,JUL:234324,AUG:805326,SEP:161754,OCT:473873,NOV:196147,DEC:233541},
+  2022:{JAN:298317,FEB:170817,MAR:822105,APR:215354,MAY:512085,JUN:299486,JUL:288978,AUG:811275,SEP:230179,OCT:589299,NOV:170570,DEC:229025},
+  2023:{JAN:305831,FEB:258998,MAR:887316,APR:248865,MAY:714394,JUN:330426,JUL:210080,AUG:676258,SEP:326805,OCT:392011,NOV:271530,DEC:263451},
+  2024:{JAN:392440,FEB:324833,MAR:739852,APR:320282,MAY:541273,JUN:519076,JUL:360240,AUG:718882,SEP:266432,OCT:687516,NOV:198660,DEC:297067},
+  2025:{JAN:403788,FEB:211792,MAR:662367,APR:261088,MAY:589075,JUN:380515,JUL:330008,AUG:699915,SEP:382721,OCT:434278,NOV:228878,DEC:158682},
+  2026:{JAN:405723,FEB:258393,MAR:null,APR:322806,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+};
+
+const ANNUAL = {2016:1842635,2017:2420259,2018:2804110,2019:3169062,2020:3761990,2021:4264045,2022:4637490,2023:4885965,2024:5366553,2025:4743107,2026:986922};
+
+// Markup multipliers (corrected from JSON — see README)
+const MU = {
+  2020:{JAN:1.7603,FEB:1.7272,MAR:1.8257,APR:1.7332,MAY:1.7591,JUN:1.8303,JUL:1.7563,AUG:1.7767,SEP:1.8032,OCT:1.8034,NOV:1.7273,DEC:1.7406},
+  2022:{JAN:1.7013,FEB:1.7825,MAR:1.7124,APR:1.7193,MAY:1.7443,JUN:1.6945,JUL:1.7180,AUG:1.7913,SEP:1.7687,OCT:1.8259,NOV:1.6388,DEC:null},
+  2023:{JAN:1.7425,FEB:1.7704,MAR:1.7709,APR:1.7329,MAY:1.7862,JUN:1.7627,JUL:1.7593,AUG:1.7699,SEP:1.7253,OCT:1.7862,NOV:1.8394,DEC:null},
+  2024:{JAN:1.6629,FEB:1.7830,MAR:1.7899,APR:1.8296,MAY:1.8011,JUN:1.7797,JUL:1.8117,AUG:1.7689,SEP:1.7182,OCT:1.7489,NOV:1.8052,DEC:null},
+  2025:{JAN:1.6667,FEB:1.8039,MAR:1.7298,APR:1.7500,MAY:1.7961,JUN:1.7241,JUL:1.7759,AUG:1.6829,SEP:1.7524,OCT:1.7405,NOV:1.7630,DEC:null},
+  2026:{JAN:1.727,FEB:1.6884,MAR:null,APR:1.7473,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+};
+
+// Cost of Goods (corrected from JSON — see README)
+const COG = {
+  2020:{JAN:130585,FEB:110123,MAR:306675,APR:146098,MAY:162672,JUN:299764,JUL:106004,AUG:400925,SEP:86300,OCT:261945,NOV:72659,DEC:131625},
+  2022:{JAN:177102,FEB:103608,MAR:496200,APR:134093,MAY:301607,JUN:193737,JUL:178763,AUG:470617,SEP:135602,OCT:328724,NOV:112962,DEC:131625},
+  2023:{JAN:183958,FEB:163629,MAR:515648,APR:146613,MAY:413095,JUN:200428,JUL:130289,AUG:399206,SEP:202782,OCT:235104,NOV:157482,DEC:null},
+  2024:{JAN:240789,FEB:188448,MAR:429077,APR:183999,MAY:310429,JUN:298188,JUL:206138,AUG:420065,SEP:170581,OCT:404671,NOV:116445,DEC:null},
+  2025:{JAN:252595,FEB:133544,MAR:390232,APR:169562,MAY:341917,JUN:231932,JUL:193300,AUG:431409,SEP:221613,OCT:254714,NOV:145230,DEC:null},
+  2026:{JAN:247585,FEB:158454,MAR:null,APR:194302,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+};
+
+// Rep net sales — all reps, all years 2016-2025 (Excel source)
+const REPS = {
+  'RONALD B':{
+    2017:{JAN:0,FEB:0,MAR:0,APR:47023,MAY:58375,JUN:28548,JUL:35666,AUG:43354,SEP:19886,OCT:45450,NOV:25106,DEC:14523},
+    2018:{JAN:30998,FEB:19310,MAR:55110,APR:23861,MAY:108988,JUN:42135,JUL:56615,AUG:135910,SEP:38349,OCT:73819,NOV:1950,DEC:63386},
+    2019:{JAN:39722,FEB:30940,MAR:98516,APR:50017,MAY:101931,JUN:52611,JUL:22620,AUG:166253,SEP:9150,OCT:53908,NOV:31573,DEC:16839},
+    2020:{JAN:37873,FEB:40878,MAR:142272,APR:26230,MAY:70498,JUN:95712,JUL:11856,AUG:127886,SEP:10907,OCT:69556,NOV:13147,DEC:59031},
+    2021:{JAN:26586,FEB:77813,MAR:171452,APR:5574,MAY:63719,JUN:50155,JUL:33811,AUG:101304,SEP:-1625,OCT:80072,NOV:42025,DEC:24890},
+    2022:{JAN:58120,FEB:13703,MAR:101116,APR:30538,MAY:55569,JUN:68479,JUL:3126,AUG:171077,SEP:41948,OCT:75752,NOV:14515,DEC:-6370},
+    2023:{JAN:92719,FEB:18469,MAR:215261,APR:5610,MAY:118532,JUN:50966,JUL:32410,AUG:43226,SEP:50768,OCT:22637,NOV:66018,DEC:39222},
+    2024:{JAN:103856,FEB:78232,MAR:111142,APR:76871,MAY:47513,JUN:96033,JUL:53992,AUG:136960,SEP:35304,OCT:148122,NOV:25068,DEC:93248},
+    2025:{JAN:112855,FEB:11675,MAR:98330,APR:35577,MAY:134379,JUN:28195,JUL:79281,AUG:149092,SEP:51648,OCT:61423,NOV:22743,DEC:60383},
+    2026:{JAN:67990,FEB:72075,MAR:null,APR:34134,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'JUSTIN G':{
+    2016:{JAN:21771,FEB:34880,MAR:71130,APR:21658,MAY:82835,JUN:16770,JUL:17504,AUG:109408,SEP:4706,OCT:39187,NOV:27862,DEC:21731},
+    2017:{JAN:35562,FEB:38644,MAR:125332,APR:40624,MAY:90331,JUN:11758,JUL:42711,AUG:103472,SEP:18604,OCT:67874,NOV:14943,DEC:22530},
+    2018:{JAN:40774,FEB:16255,MAR:124398,APR:25924,MAY:70471,JUN:15229,JUL:27573,AUG:71693,SEP:15768,OCT:149748,NOV:9301,DEC:29031},
+    2019:{JAN:59474,FEB:27097,MAR:69966,APR:29110,MAY:59562,JUN:25513,JUL:26587,AUG:91711,SEP:18460,OCT:70724,NOV:8943,DEC:-3222},
+    2020:{JAN:23973,FEB:-400,MAR:-2849,APR:37103,MAY:29921,JUN:50019,JUL:17810,AUG:72891,SEP:14572,OCT:49242,NOV:23865,DEC:4910},
+    2021:{JAN:11517,FEB:32208,MAR:40612,APR:25522,MAY:52809,JUN:39677,JUL:17116,AUG:68886,SEP:38237,OCT:65942,NOV:8479,DEC:41804},
+    2022:{JAN:30702,FEB:19014,MAR:139410,APR:6174,MAY:41061,JUN:21098,JUL:13195,AUG:87204,SEP:12818,OCT:63961,NOV:18586,DEC:27827},
+    2023:{JAN:19121,FEB:57236,MAR:132917,APR:19189,MAY:31581,JUN:38944,JUL:29846,AUG:66139,SEP:54306,OCT:35989,NOV:24052,DEC:58836},
+    2024:{JAN:40160,FEB:14277,MAR:51280,APR:21435,MAY:80044,JUN:53963,JUL:21301,AUG:98712,SEP:49786,OCT:102039,NOV:8347,DEC:29802},
+    2025:{JAN:87339,FEB:21602,MAR:87483,APR:32356,MAY:57234,JUN:58173,JUL:51438,AUG:97288,SEP:48232,OCT:75705,NOV:28505,DEC:20991},
+    2026:{JAN:1116,FEB:null,MAR:null,APR:112,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'ADAM WEST':{
+    2016:{JAN:20998,FEB:-15928,MAR:18154,APR:19538,MAY:22169,JUN:35982,JUL:9942,AUG:5252,SEP:16612,OCT:932,NOV:3687,DEC:5669},
+    2017:{JAN:11309,FEB:0,MAR:0,APR:0,MAY:1049,JUN:30827,JUL:13604,AUG:0,SEP:7301,OCT:72,NOV:2090,DEC:33374},
+    2018:{JAN:8623,FEB:7718,MAR:-1053,APR:29005,MAY:36131,JUN:20196,JUL:26371,AUG:65575,SEP:17897,OCT:4482,NOV:12921,DEC:9861},
+    2019:{JAN:12055,FEB:1110,MAR:48467,APR:49355,MAY:41472,JUN:55340,JUL:13418,AUG:94932,SEP:37104,OCT:71091,NOV:17469,DEC:15849},
+    2020:{JAN:16056,FEB:2792,MAR:0,APR:32647,MAY:30302,JUN:53071,JUL:19957,AUG:105218,SEP:9191,OCT:45646,NOV:20922,DEC:12365},
+    2021:{JAN:34754,FEB:25451,MAR:74612,APR:20237,MAY:55461,JUN:78306,JUL:30158,AUG:106917,SEP:19162,OCT:52953,NOV:18877,DEC:2213},
+    2022:{JAN:23035,FEB:13654,MAR:115925,APR:20214,MAY:37404,JUN:27055,JUL:39000,AUG:92304,SEP:20516,OCT:34307,NOV:16893,DEC:39961},
+    2023:{JAN:50491,FEB:28930,MAR:121162,APR:58474,MAY:68892,JUN:40485,JUL:23249,AUG:142725,SEP:47062,OCT:48443,NOV:24387,DEC:36525},
+    2024:{JAN:54578,FEB:17340,MAR:176250,APR:56853,MAY:57571,JUN:76511,JUL:26741,AUG:106710,SEP:44804,OCT:111849,NOV:36697,DEC:45742},
+    2025:{JAN:42236,FEB:39687,MAR:86693,APR:44363,MAY:88593,JUN:58482,JUL:29432,AUG:111917,SEP:60424,OCT:45490,NOV:47614,DEC:13477},
+    2026:{JAN:64281,FEB:13343,MAR:null,APR:97791,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'ADAM M':{
+    2019:{JAN:0,FEB:0,MAR:29609,APR:27353,MAY:53539,JUN:22908,JUL:28229,AUG:52359,SEP:21982,OCT:80664,NOV:16797,DEC:13532},
+    2020:{JAN:29835,FEB:26924,MAR:107529,APR:31969,MAY:37504,JUN:100021,JUL:16047,AUG:82675,SEP:32190,OCT:87077,NOV:18005,DEC:24991},
+    2021:{JAN:32218,FEB:25943,MAR:121798,APR:12846,MAY:88347,JUN:38603,JUL:27521,AUG:125667,SEP:13262,OCT:56162,NOV:26727,DEC:33697},
+    2022:{JAN:30327,FEB:23442,MAR:131756,APR:22421,MAY:44590,JUN:29393,JUL:32857,AUG:126622,SEP:22733,OCT:105379,NOV:9994,DEC:29432},
+    2023:{JAN:51477,FEB:27039,MAR:130678,APR:24241,MAY:92236,JUN:20445,JUL:16245,AUG:142819,SEP:25136,OCT:119262,NOV:45165,DEC:25683},
+    2024:{JAN:35846,FEB:54018,MAR:160304,APR:12755,MAY:120956,JUN:91223,JUL:69087,AUG:124158,SEP:37367,OCT:118988,NOV:46281,DEC:17195},
+    2025:{JAN:62189,FEB:23088,MAR:119985,APR:25426,MAY:100100,JUN:45416,JUL:35002,AUG:68447,SEP:19818,OCT:71790,NOV:28432,DEC:11152},
+    2026:{JAN:33042,FEB:31251,MAR:null,APR:23448,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'SCOT T':{
+    2020:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:0,SEP:12095,OCT:20208,NOV:8577,DEC:16788},
+    2021:{JAN:12871,FEB:19579,MAR:16283,APR:25149,MAY:31707,JUN:17338,JUL:18881,AUG:40959,SEP:18759,OCT:28643,NOV:20302,DEC:18870},
+    2022:{JAN:31426,FEB:22391,MAR:37558,APR:22467,MAY:38979,JUN:31102,JUL:21878,AUG:47042,SEP:10845,OCT:37897,NOV:2513,DEC:35145},
+    2023:{JAN:11900,FEB:12524,MAR:60965,APR:23792,MAY:60419,JUN:31233,JUL:17933,AUG:53535,SEP:40933,OCT:38178,NOV:17143,DEC:35164},
+    2024:{JAN:30840,FEB:34256,MAR:53754,APR:39995,MAY:77996,JUN:36949,JUL:52594,AUG:28161,SEP:44398,OCT:44132,NOV:14918,DEC:50042},
+    2025:{JAN:26957,FEB:45289,MAR:101015,APR:46810,MAY:64744,JUN:52886,JUL:38417,AUG:114842,SEP:68363,OCT:24982,NOV:34827,DEC:7400},
+    2026:{JAN:66005,FEB:47253,MAR:null,APR:33350,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'KIETH M':{
+    2016:{JAN:7477,FEB:5569,MAR:17452,APR:11259,MAY:34135,JUN:4584,JUL:8331,AUG:25282,SEP:6610,OCT:20367,NOV:13213,DEC:7553},
+    2019:{JAN:8017,FEB:11239,MAR:22603,APR:13345,MAY:22539,JUN:28556,JUL:14714,AUG:29409,SEP:17167,OCT:43736,NOV:11604,DEC:20631},
+    2020:{JAN:20161,FEB:20033,MAR:50660,APR:11183,MAY:14354,JUN:43401,JUL:26913,AUG:60227,SEP:16588,OCT:42685,NOV:19798,DEC:30074},
+    2021:{JAN:8357,FEB:19515,MAR:53464,APR:20298,MAY:55330,JUN:25360,JUL:47030,AUG:66833,SEP:30780,OCT:31239,NOV:18435,DEC:13151},
+    2022:{JAN:34902,FEB:12461,MAR:32557,APR:11567,MAY:55931,JUN:10032,JUL:22335,AUG:43133,SEP:17051,OCT:46036,NOV:25339,DEC:23659},
+    2023:{JAN:0,FEB:0,MAR:0,APR:12909,MAY:32120,JUN:18222,JUL:15841,AUG:33776,SEP:25568,OCT:22924,NOV:11882,DEC:983},
+    2024:{JAN:14122,FEB:22850,MAR:29844,APR:15906,MAY:17961,JUN:26074,JUL:36611,AUG:29460,SEP:25917,OCT:35941,NOV:4303,DEC:17297}
+  },
+  'ANGEL F':{
+    2016:{JAN:0,FEB:0,MAR:0,APR:0,MAY:9090,JUN:3031,JUL:6343,AUG:15085,SEP:2289,OCT:23185,NOV:3715,DEC:7907},
+    2017:{JAN:3876,FEB:7128,MAR:17219,APR:13017,MAY:20573,JUN:4962,JUL:7080,AUG:23618,SEP:3177,OCT:7497,NOV:6957,DEC:4142},
+    2018:{JAN:3745,FEB:10329,MAR:14675,APR:12587,MAY:29677,JUN:24135,JUL:13469,AUG:34341,SEP:2130,OCT:22903,NOV:7585,DEC:7419},
+    2019:{JAN:3864,FEB:3855,MAR:22074,APR:12247,MAY:25428,JUN:9006,JUL:14175,AUG:33273,SEP:3647,OCT:28774,NOV:3188,DEC:17236},
+    2020:{JAN:19774,FEB:12266,MAR:32952,APR:7517,MAY:14439,JUN:44920,JUL:5349,AUG:33698,SEP:11724,OCT:26043,NOV:8575,DEC:10484},
+    2021:{JAN:11908,FEB:16672,MAR:46847,APR:12635,MAY:32839,JUN:9709,JUL:11236,AUG:43168,SEP:16187,OCT:28858,NOV:7879,DEC:15654},
+    2022:{JAN:14007,FEB:13296,MAR:28987,APR:16546,MAY:53931,JUN:21613,JUL:7272,AUG:36458,SEP:12159,OCT:36240,NOV:14595,DEC:9194},
+    2023:{JAN:9306,FEB:20516,MAR:46367,APR:6310,MAY:43401,JUN:4834,JUL:20506,AUG:26744,SEP:22858,OCT:21386,NOV:20691,DEC:22363}
+  },
+  'LUIS M':{
+    2019:{JAN:3808,FEB:9323,MAR:23151,APR:14696,MAY:19611,JUN:3898,JUL:15373,AUG:52202,SEP:14652,OCT:35282,NOV:13440,DEC:1594},
+    2020:{JAN:3837,FEB:15232,MAR:57536,APR:12091,MAY:7442,JUN:22699,JUL:14482,AUG:79464,SEP:6600,OCT:35705,NOV:4950,DEC:17393},
+    2021:{JAN:20268,FEB:26859,MAR:89448,APR:26551,MAY:55762,JUN:33444,JUL:4029,AUG:113947,SEP:4612,OCT:27981,NOV:8054,DEC:34383},
+    2022:{JAN:33275,FEB:25128,MAR:123044,APR:21536,MAY:22188,JUN:30136,JUL:45746,AUG:37630,SEP:39768,OCT:45518,NOV:3255,DEC:32083},
+    2025:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:7375,JUL:19452,AUG:21800,SEP:11563,OCT:10122,NOV:16722,DEC:395},
+    2026:{JAN:10166,FEB:4470,MAR:null,APR:5276,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'KERRY SMITH':{
+    2016:{JAN:6599,FEB:5509,MAR:46133,APR:3634,MAY:34906,JUN:8170,JUL:8024,AUG:54587,SEP:323,OCT:18635,NOV:7398,DEC:19964},
+    2017:{JAN:799,FEB:3758,MAR:23952,APR:5794,MAY:28930,JUN:12793,JUL:4788,AUG:34432,SEP:-510,OCT:28441,NOV:0,DEC:2770},
+    2018:{JAN:11555,FEB:7639,MAR:15844,APR:7468,MAY:38778,JUN:5027,JUL:3374,AUG:33755,SEP:8397,OCT:16094,NOV:7214,DEC:6415},
+    2019:{JAN:4073,FEB:-603,MAR:29994,APR:5227,MAY:17757,JUN:2154,JUL:3480,AUG:15563,SEP:6983,OCT:21742,NOV:218,DEC:1065},
+    2020:{JAN:8617,FEB:13898,MAR:6380,APR:1750,MAY:857,JUN:20537,JUL:4221,AUG:21657,SEP:1152,OCT:19724,NOV:684,DEC:11445},
+    2021:{JAN:9460,FEB:2793,MAR:20811,APR:9350,MAY:4236,JUN:2148,JUL:13759,AUG:35556,SEP:5400,OCT:5512,NOV:6876,DEC:13277},
+    2022:{JAN:1420,FEB:617,MAR:15580,APR:1229,MAY:23420,JUN:8279,JUL:5467,AUG:16713,SEP:720,OCT:15860,NOV:6219,DEC:4488},
+    2023:{JAN:2169,FEB:3903,MAR:8853,APR:2107,MAY:32535,JUN:22084,JUL:8034,AUG:13102,SEP:2905,OCT:8317,NOV:10729,DEC:2519},
+    2024:{JAN:2460,FEB:5636,MAR:12699,APR:13460,MAY:20186,JUN:11372,JUL:3580,AUG:25144,SEP:4936,OCT:30559,NOV:8685,DEC:6554},
+    2025:{JAN:6579,FEB:2024,MAR:30426,APR:3546,MAY:35656,JUN:11188,JUL:10874,AUG:20806,SEP:20627,OCT:33474,NOV:190,DEC:13392},
+    2026:{JAN:351,FEB:292,MAR:null,APR:3692,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'ANTHONY S':{
+    2020:{JAN:0,FEB:0,MAR:7846,APR:23304,MAY:18077,JUN:16385,JUL:13351,AUG:22923,SEP:8585,OCT:20865,NOV:1786,DEC:11893},
+    2021:{JAN:9170,FEB:4251,MAR:10786,APR:17873,MAY:28713,JUN:20176,JUL:16200,AUG:38940,SEP:10016,OCT:23655,NOV:17321,DEC:5909},
+    2022:{JAN:15520,FEB:10343,MAR:9775,APR:26021,MAY:14783,JUN:12485,JUL:13604,AUG:39385,SEP:15854,OCT:35769,NOV:13941,DEC:6626},
+    2023:{JAN:5459,FEB:5208,MAR:42065,APR:17667,MAY:21419,JUN:17906,JUL:6954,AUG:38216,SEP:8420,OCT:5243,NOV:12084,DEC:12646},
+    2024:{JAN:11038,FEB:8481,MAR:28864,APR:29015,MAY:40402,JUN:19419,JUL:19128,AUG:30760,SEP:8186,OCT:30093,NOV:10006,DEC:31704},
+    2025:{JAN:18649,FEB:12548,MAR:30422,APR:42845,MAY:31641,JUN:30430,JUL:14368,AUG:37367,SEP:31232,OCT:34978,NOV:17894,DEC:2189},
+    2026:{JAN:30425,FEB:5683,MAR:null,APR:21823,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'JOHN B':{
+    2017:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:978,AUG:19841,SEP:2726,OCT:16320,NOV:12780,DEC:5077},
+    2022:{JAN:0,FEB:0,MAR:0,APR:4592,MAY:48671,JUN:13153,JUL:0,AUG:6191,SEP:9726,OCT:27370,NOV:32904,DEC:1108},
+    2023:{JAN:17844,FEB:17852,MAR:30052,APR:19353,MAY:35345,JUN:29013,JUL:20593,AUG:40936,SEP:12364,OCT:24406,NOV:24321,DEC:5871},
+    2024:{JAN:26582,FEB:14936,MAR:41457,APR:27008,MAY:43785,JUN:21352,JUL:32289,AUG:35730,SEP:2821,OCT:15419,NOV:10910,DEC:15965},
+    2025:{JAN:22357,FEB:22950,MAR:33456,APR:15100,MAY:31658,JUN:52608,JUL:20058,AUG:37898,SEP:29211,OCT:25970,NOV:16169,DEC:18777},
+    2026:{JAN:14582,FEB:14089,MAR:null,APR:13632,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'JARED A':{
+    2016:{JAN:7718,FEB:16018,MAR:16787,APR:9525,MAY:21175,JUN:8849,JUL:4572,AUG:27437,SEP:5220,OCT:15328,NOV:7612,DEC:8763},
+    2019:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:0,SEP:0,OCT:50074,NOV:18158,DEC:8977},
+    2020:{JAN:27311,FEB:8614,MAR:44443,APR:22726,MAY:16668,JUN:23040,JUL:8894,AUG:26529,SEP:5095,OCT:20939,NOV:3976,DEC:14742},
+    2021:{JAN:7228,FEB:17752,MAR:41319,APR:11171,MAY:27463,JUN:24802,JUL:9676,AUG:56716,SEP:4752,OCT:40417,NOV:11030,DEC:21854},
+    2022:{JAN:15833,FEB:2665,MAR:59044,APR:11092,MAY:56258,JUN:15397,JUL:10596,AUG:59642,SEP:8581,OCT:41171,NOV:3692,DEC:13394}
+  },
+  'CRAIG F':{
+    2016:{JAN:2917,FEB:12383,MAR:20794,APR:5579,MAY:24329,JUN:3838,JUL:20537,AUG:21870,SEP:4821,OCT:22938,NOV:13678,DEC:5196},
+    2017:{JAN:5998,FEB:5546,MAR:17786,APR:24659,MAY:27775,JUN:11258,JUL:14808,AUG:18828,SEP:14424,OCT:27821,NOV:16953,DEC:14828},
+    2018:{JAN:17476,FEB:14640,MAR:30062,APR:14591,MAY:40961,JUN:12007,JUL:10279,AUG:19789,SEP:6711,OCT:27944,NOV:4184,DEC:17604}
+  },
+  'STEVE SURA':{
+    2016:{JAN:5761,FEB:9286,MAR:17024,APR:4814,MAY:46373,JUN:9782,JUL:10830,AUG:31997,SEP:9746,OCT:14818,NOV:13234,DEC:3597},
+    2017:{JAN:12157,FEB:6088,MAR:17828,APR:19684,MAY:24527,JUN:11624,JUL:9904,AUG:46239,SEP:7235,OCT:28416,NOV:12443,DEC:11223}
+  },
+  'RYAN ERIE':{
+    2022:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:7149,SEP:17410,OCT:22500,NOV:8124,DEC:12478},
+    2023:{JAN:20411,FEB:17878,MAR:20468,APR:16236,MAY:32372,JUN:23572,JUL:8385,AUG:42185,SEP:16960,OCT:33855,NOV:9615,DEC:15192}
+  },
+  'JUAN T':{
+    2017:{JAN:0,FEB:0,MAR:0,APR:4331,MAY:10702,JUN:8704,JUL:3424,AUG:22578,SEP:3298,OCT:11002,NOV:6778,DEC:5333},
+    2018:{JAN:9656,FEB:3694,MAR:14122,APR:5654,MAY:40074,JUN:18509,JUL:11322,AUG:45620,SEP:7951,OCT:18787,NOV:10421,DEC:15309}
+  },
+  'JOSEPH C':{
+    2017:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:9082,AUG:18030,SEP:10731,OCT:17194,NOV:11134,DEC:6088},
+    2018:{JAN:1785,FEB:10345,MAR:24074,APR:11589,MAY:31068,JUN:12664,JUL:8995,AUG:16625,SEP:6894,OCT:30491,NOV:3236,DEC:6971}
+  },
+  'FOREST':{
+    2024:{JAN:46840,FEB:23383,MAR:34852,APR:13286,MAY:5476,JUN:25096,JUL:9868,AUG:31299,SEP:4998,OCT:25873,NOV:26155,DEC:-10719}
+  },
+  'MATHEW K':{
+    2016:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:10358,SEP:5163,OCT:9360,NOV:9596,DEC:2031},
+    2017:{JAN:6910,FEB:12517,MAR:9113,APR:10591,MAY:15226,JUN:4042,JUL:5591,AUG:20079,SEP:4520,OCT:20693,NOV:5561,DEC:4048},
+    2018:{JAN:7707,FEB:4243,MAR:20316,APR:6830,MAY:19372,JUN:480,JUL:0,AUG:0,SEP:0,OCT:0,NOV:0,DEC:0}
+  },
+  'BRETT G':{
+    2017:{JAN:0,FEB:0,MAR:0,APR:8225,MAY:16830,JUN:10458,JUL:18536,AUG:23063,SEP:7530,OCT:26162,NOV:13471,DEC:15708}
+  },
+  'DON J':{
+    2024:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:10828,JUL:3108,AUG:5875,SEP:3400,OCT:5408,NOV:8047,DEC:848},
+    2025:{JAN:4933,FEB:9177,MAR:26421,APR:2072,MAY:12875,JUN:4908,JUL:5673,AUG:7325,SEP:15825,OCT:5755,NOV:-3503,DEC:0}
+  },
+  'RICH K':{
+    2018:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:0,SEP:0,OCT:0,NOV:7132,DEC:4112},
+    2019:{JAN:9889,FEB:1073,MAR:13018,APR:6343,MAY:8665,JUN:3443,JUL:12112,AUG:11326,SEP:11351,OCT:10944,NOV:5293,DEC:4343}
+  },
+  'FRANK B':{
+    2018:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:64590,SEP:8955,OCT:17408,NOV:0,DEC:0}
+  },
+  'LES K':{
+    2024:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:23130,JUL:6515,AUG:8980,SEP:395,OCT:10044,NOV:613,DEC:0},
+    2025:{JAN:-1840,FEB:0,MAR:0,APR:0,MAY:0,JUN:6250,JUL:11488,AUG:5901,SEP:11744,OCT:3496,NOV:2467,DEC:460},
+    2026:{JAN:260,FEB:3588,MAR:null,APR:3659,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'LARRY H':{
+    2016:{JAN:4102,FEB:8872,MAR:7749,APR:7203,MAY:7353,JUN:6874,JUL:8279,AUG:11655,SEP:4651,OCT:9959,NOV:7017,DEC:3340}
+  },
+  'WATSON':{
+    2016:{JAN:3162,FEB:8464,MAR:10568,APR:7581,MAY:17135,JUN:7010,JUL:4439,AUG:17811,SEP:4764,OCT:1788,NOV:0,DEC:0}
+  },
+  'EZEQUIEL':{
+    2019:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:7036,AUG:6835,SEP:6315,OCT:18684,NOV:2051,DEC:6071}
+  },
+  'TODD G':{
+    2019:{JAN:0,FEB:0,MAR:2654,APR:3308,MAY:10395,JUN:5122,JUL:1014,AUG:15157,SEP:1737,OCT:3584,NOV:0,DEC:0}
+  },
+  'NURSE':{
+    2025:{JAN:0,FEB:0,MAR:9094,APR:3767,MAY:4645,JUN:3075,JUL:2474,AUG:2200,SEP:6757,OCT:659,NOV:5556,DEC:0}
+  },
+  'PAUL Z':{
+    2025:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:10235,AUG:8550,SEP:7275,OCT:13775,NOV:-2445,DEC:0},
+    2026:{JAN:3958,FEB:4337,MAR:null,APR:null,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'JOE C':{
+    2021:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:0,SEP:0,OCT:17136,NOV:4520,DEC:2675}
+  },
+  'DEVIN L':{
+    2021:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:0,SEP:0,OCT:15303,NOV:2870,DEC:5164}
+  },
+  'JOSH M':{
+    2016:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:0,SEP:0,OCT:7561,NOV:4534,DEC:4023}
+  },
+  'GIOVANNI':{
+    2019:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:0,SEP:0,OCT:4831,NOV:5752,DEC:5151}
+  },
+  'JOE W':{
+    2016:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:5236,SEP:2842,OCT:6198,NOV:156,DEC:0}
+  },
+  'CASSANDRA':{
+    2025:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:0,SEP:0,OCT:14079,NOV:0,DEC:0},
+    2026:{JAN:10629,FEB:10801,MAR:null,APR:4089,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'IAN':{
+    2023:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:0,SEP:0,OCT:7102,NOV:375,DEC:3491}
+  },
+  'CHRIS C':{
+    2016:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:0,SEP:0,OCT:0,NOV:5617,DEC:4748}
+  },
+  'KYLE S':{
+    2017:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:0,SEP:0,OCT:0,NOV:0,DEC:9615}
+  },
+  'JAMEL':{
+    2025:{JAN:0,FEB:0,MAR:0,APR:0,MAY:0,JUN:0,JUL:0,AUG:0,SEP:0,OCT:7273,NOV:1667,DEC:578},
+    2026:{JAN:1238,FEB:1576,MAR:null,APR:710,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'CHRIS K':{
+    2026:{JAN:19271,FEB:19329,MAR:null,APR:10096,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'NICO T':{
+    2026:{JAN:7913,FEB:3392,MAR:null,APR:2838,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'GEOFFREY N':{
+    2026:{JAN:254,FEB:5307,MAR:null,APR:2056,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  },
+  'ANNISSA B':{
+    2026:{JAN:600,FEB:null,MAR:null,APR:null,MAY:null,JUN:null,JUL:null,AUG:null,SEP:null,OCT:null,NOV:null,DEC:null}
+  }
+};
+
+// ============================================================
+// HELPERS
+// ============================================================
+const fmt = v => v==null||v===0 ? "—" : "$"+Math.round(v).toLocaleString();
+const fmtK = v => v==null||v===0 ? "—" : "$"+(v/1000).toFixed(0)+"K";
+const fmtM = v => v==null ? "—" : "$"+(v/1000000).toFixed(2)+"M";
+const pctN = (a,b) => (b && b!==0) ? ((a-b)/Math.abs(b)*100) : null;
+const pctS = (a,b) => { const p=pctN(a,b); return p==null?null:p.toFixed(1)+"%"; };
+const aCls = p => p==null?"fl":p>0?"pos":"neg";
+const aStr = p => p==null?"—":p>0?"&#9650; +"+p.toFixed(1)+"%":"&#9660; "+Math.abs(p).toFixed(1)+"%";
+
+function allMoSorted() {
+  const all=[];
+  YEARS.forEach(y=>MONTHS.forEach(m=>{
+    const v=NET[y][m]; if(v>0) all.push({y,m,v});
+  }));
+  return all.sort((a,b)=>b.v-a.v);
+}
+
+function ytd(year, thruIdx) {
+  let s=0;
+  for(let i=0;i<=thruIdx;i++) s+=(NET[year][MONTHS[i]]||0);
+  return s;
+}
+
+function avgMU(year) {
+  if(!MU[year]) return null;
+  const vals=MONTHS.map(m=>MU[year][m]).filter(v=>v!=null);
+  return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+}
+
+function repYearTotal(rep, year) {
+  if(!REPS[rep]||!REPS[rep][year]) return 0;
+  return MONTHS.reduce((s,m)=>s+(REPS[rep][year][m]||0),0);
+}
+
+function repLifetimeTotal(rep) {
+  if(!REPS[rep]) return 0;
+  return Object.values(REPS[rep]).reduce((s,yr)=>s+MONTHS.reduce((ss,m)=>ss+(yr[m]||0),0),0);
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let curYear=null, curMonth=null, curRep=null;
+
+// ============================================================
+// NAV TABS
+// ============================================================
+function showTab(tab) {
+  ["home","reps"].forEach(t=>{
+    const nb=document.getElementById("nb-"+t);
+    if(nb) nb.classList.toggle("active", t===tab);
+  });
+  ["v-home","v-year","v-month","v-reps","v-repdetail"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.remove("on");
+  });
+  if(tab==="home") {
+    document.getElementById("v-home").classList.add("on");
+    setBc([{t:"&#127968; WI Office Overview"}]);
+  } else if(tab==="reps") {
+    document.getElementById("v-reps").classList.add("on");
+    setBc([{t:"&#127968; WI Office", fn:"showTab('home')"},
+           {t:"&#128101; Rep Roster"}]);
+    renderReps();
+  }
+}
+
+function showView(id) {
+  ["v-home","v-year","v-month","v-reps","v-repdetail"].forEach(v=>{
+    const el=document.getElementById(v);
+    if(el) el.classList.remove("on");
+  });
+  document.getElementById(id).classList.add("on");
+  window.scrollTo(0,0);
+}
+
+function setBc(items) {
+  const bc=document.getElementById("bc");
+  let html="";
+  items.forEach((item,i)=>{
+    if(i>0) html+='<span class="sep">&#8250;</span>';
+    if(item.fn) html+=`<a onclick="${item.fn}">${item.t}</a>`;
+    else html+=`<span class="cur">${item.t}</span>`;
+  });
+  bc.innerHTML=html;
+}
+
+function navYear(year) {
+  curYear=year;
+  document.getElementById("nb-home").classList.add("active");
+  document.getElementById("nb-reps").classList.remove("active");
+  showView("v-year");
+  setBc([{t:"&#127968; WI Office",fn:"showTab('home')"},
+         {t:"<span class='ybadge'>"+year+"</span> Annual",fn:null}]);
+  renderYear(year);
+}
+
+function navMonth(month, fromYear) {
+  curMonth=month;
+  curYear=fromYear;
+  showView("v-month");
+  const mi=MONTHS.indexOf(month);
+  setBc([{t:"&#127968; WI Office",fn:"showTab('home')"},
+         {t:"<span class='ybadge'>"+fromYear+"</span>",fn:"navYear("+fromYear+")"},
+         {t:MONTH_FULL[mi]+" &#8212; All Years"}]);
+  renderMonth(month, fromYear);
+}
+
+function backToHome() { showTab("home"); }
+
+function navRep(repName) {
+  curRep=repName;
+  showView("v-repdetail");
+  setBc([{t:"&#127968; WI Office",fn:"showTab('home')"},
+         {t:"&#128101; Rep Roster",fn:"showTab('reps')"},
+         {t:repName}]);
+  renderRepDetail(repName);
+}
+
+// ============================================================
+// HOME
+// ============================================================
+function renderHome() {
+  const allTime = Object.keys(ANNUAL).reduce((s,y)=>s+ANNUAL[y],0);
+  const bestY = YEARS.reduce((b,y)=>ANNUAL[y]>ANNUAL[b]?y:b,2016);
+  const yoy = pctN(ANNUAL[2025],ANNUAL[2024]);
+  const yoyStr = yoy!=null?(yoy>0?"+":"")+yoy.toFixed(1)+"%" : "—";
+
+  document.getElementById("hAll").textContent = fmtM(allTime);
+  document.getElementById("hBest").textContent = bestY;
+  document.getElementById("hYoY").textContent = yoyStr;
+
+  document.getElementById("homeAlert").innerHTML =
+    `All 10 years loaded from COO Excel. All-Time Revenue: <strong>${fmtM(allTime)}</strong>. ` +
+    `Best year: <strong>${bestY} (${fmtM(ANNUAL[bestY])})</strong>. ` +
+    `2025 vs 2024: <strong style="color:${yoy>=0?"var(--green)":"var(--red)"}">${yoyStr}</strong>.`;
+
+  const allS=allMoSorted();
+  const best=allS[0];
+  const muA25=avgMU(2025);
+  const avg=allTime/YEARS.length;
+
+  let kHtml=`
+    <div class="kc g"><div class="kl">All-Time Revenue (10 Yrs)</div><div class="kv g">${fmtM(allTime)}</div><div class="ks">2016&#8211;2025</div></div>
+    <div class="kc gr"><div class="kl">Best Year Ever</div><div class="kv gr">${fmtM(ANNUAL[bestY])}</div><div class="ks">${bestY} &#127942;</div></div>
+    <div class="kc bl"><div class="kl">Best Single Month Ever</div><div class="kv bl">${fmtK(best.v)}</div><div class="ks">${best.m} ${best.y}</div></div>
+    <div class="kc g"><div class="kl">2024 Revenue (Peak Year)</div><div class="kv g">${fmtM(ANNUAL[2024])}</div><div class="ks">All-Time High</div></div>
+    <div class="kc ${yoy>=0?"gr":"re"}"><div class="kl">2025 vs 2024</div><div class="kv ${yoy>=0?"gr":"re"}">${yoyStr}</div><div class="ks">${fmt(ANNUAL[2025])}</div></div>
+    <div class="kc bl"><div class="kl">10-Year Avg Annual</div><div class="kv bl">${fmtM(avg)}</div><div class="ks">2016&#8211;2025</div></div>`;
+  if(muA25!=null) kHtml+=`<div class="kc pu"><div class="kl">2025 Avg Markup</div><div class="kv pu">${muA25.toFixed(4)}x</div><div class="ks">${((muA25-1)*100).toFixed(1)}% over cost</div></div>`;
+  document.getElementById("homeKpis").innerHTML = kHtml;
+
+  // Records
+  const jmp = YEARS.slice(1).reduce((b,y)=>{const g=ANNUAL[y]-ANNUAL[y-1];return g>b.g?{y,g}:b;},{y:2017,g:-Infinity});
+  const drp = YEARS.slice(1).reduce((b,y)=>{const g=ANNUAL[y]-ANNUAL[y-1];return g<b.g?{y,g}:b;},{y:2017,g:Infinity});
+  document.getElementById("homeRec").innerHTML=`
+    <div class="rb"><span class="rl">&#129351; All-Time Best Month</span><span class="rv">${fmt(best.v)}</span> <span class="rs">${best.m} ${best.y}</span></div>
+    <div class="rb"><span class="rl">&#129352; #2 All-Time Month</span><span class="rv">${fmt(allS[1].v)}</span> <span class="rs">${allS[1].m} ${allS[1].y}</span></div>
+    <div class="rb"><span class="rl">&#129353; #3 All-Time Month</span><span class="rv">${fmt(allS[2].v)}</span> <span class="rs">${allS[2].m} ${allS[2].y}</span></div>
+    <div class="rb"><span class="rl">&#127942; Best Calendar Year</span><span class="rv">${fmtM(ANNUAL[bestY])}</span> <span class="rs">${bestY}</span></div>
+    <div class="rb"><span class="rl">&#128200; Biggest YoY Jump</span><span class="rv">+${fmtK(jmp.g)}</span> <span class="rs">${jmp.y-1}&#8594;${jmp.y}</span></div>
+    <div class="rb"><span class="rl">&#128201; Biggest YoY Drop</span><span class="rv">${fmtK(drp.g)}</span> <span class="rs">${drp.y-1}&#8594;${drp.y}</span></div>
+    <div class="rb"><span class="rl">&#127331; Year 1 (2016)</span><span class="rv">${fmtM(ANNUAL[2016])}</span> <span class="rs">Startup</span></div>
+    <div class="rb"><span class="rl">&#127941; Peak (2024)</span><span class="rv">${fmtM(ANNUAL[2024])}</span> <span class="rs">All-Time</span></div>`;
+
+  // Year grid
+  let ygHtml="";
+  YEARS.forEach(y=>{
+    const pr=y>2016?ANNUAL[y-1]:null;
+    const chg=pr?pctN(ANNUAL[y],pr):null;
+    const isBest=y===bestY;
+    ygHtml+=`<div class="yc${isBest?" best":""}" onclick="navYear(${y})">
+      <div class="yy">${y}${isBest?" &#127942;":""}</div>
+      <div class="ys">${fmtM(ANNUAL[y])}</div>
+      ${chg!=null?`<div class="yt ${chg>=0?"up":"dn"}">${chg>=0?"&#9650;":"&#9660;"} ${Math.abs(chg).toFixed(1)}% vs ${y-1}</div>`:`<div class="yt fl">Year 1</div>`}
+    </div>`;
+  });
+  document.getElementById("yearGrid").innerHTML=ygHtml;
+
+  renderAnnualChart();
+  renderGrowthChart();
+  renderAvgChart();
+  renderAllTimeBest();
+  renderBestByMonth();
+}
+
+function renderAnnualChart() {
+  const ctx=document.getElementById("annualChart").getContext("2d");
+  const best=Math.max(...YEARS.map(y=>ANNUAL[y]));
+  if(window._aC) window._aC.destroy();
+  window._aC=new Chart(ctx,{
+    type:"bar",
+    data:{labels:YEARS.map(String),datasets:[{
+      label:"Net Sales",data:YEARS.map(y=>ANNUAL[y]),
+      backgroundColor:YEARS.map(y=>ANNUAL[y]===best?"rgba(232,200,74,.9)":"rgba(91,163,232,.65)"),
+      borderColor:YEARS.map(y=>ANNUAL[y]===best?"#e8c84a":"#5ba3e8"),borderWidth:2,borderRadius:5
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      onClick:(e,els)=>{if(els.length) navYear(YEARS[els[0].index]);},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>" "+fmtM(i.raw)}}},
+      scales:{y:{ticks:{callback:v=>"$"+(v/1e6).toFixed(1)+"M"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
+  });
+}
+
+function renderGrowthChart() {
+  const ctx=document.getElementById("growthChart").getContext("2d");
+  const labels=YEARS.slice(1).map(String);
+  const vals=YEARS.slice(1).map(y=>{const p=pctN(ANNUAL[y],ANNUAL[y-1]);return p!=null?+p.toFixed(1):0;});
+  if(window._gC) window._gC.destroy();
+  window._gC=new Chart(ctx,{type:"bar",
+    data:{labels,datasets:[{label:"YoY%",data:vals,
+      backgroundColor:vals.map(v=>v>=0?"rgba(46,204,113,.7)":"rgba(231,76,60,.7)"),
+      borderColor:vals.map(v=>v>=0?"#2ecc71":"#e74c3c"),borderWidth:2,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>i.raw+"%"}}},
+      scales:{y:{ticks:{callback:v=>v+"%"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
+  });
+}
+
+function renderAvgChart() {
+  const ctx=document.getElementById("avgChart").getContext("2d");
+  const avgs=MONTHS.map(m=>YEARS.reduce((s,y)=>s+(NET[y][m]||0),0)/YEARS.length);
+  if(window._avC) window._avC.destroy();
+  window._avC=new Chart(ctx,{type:"bar",
+    data:{labels:MONTHS,datasets:[{label:"10-Yr Avg",data:avgs,
+      backgroundColor:"rgba(200,168,76,.65)",borderColor:"#c9a84c",borderWidth:2,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>" Avg: "+fmt(i.raw)}}},
+      scales:{y:{ticks:{callback:v=>"$"+(v/1e3).toFixed(0)+"K"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
+  });
+}
+
+function renderAllTimeBest() {
+  const all=allMoSorted().slice(0,25);
+  const rows=all.map((row,i)=>{
+    const prev=row.y>2016?NET[row.y-1][row.m]:null;
+    const chg=prev?pctN(row.v,prev):null;
+    const rk=i===0?"rk g1":i===1?"rk g2":i===2?"rk g3":"rk";
+    return `<tr onclick="navYear(${row.y})">
+      <td class="${rk}">#${i+1}</td>
+      <td class="hi">${MONTH_FULL[MONTHS.indexOf(row.m)]}</td>
+      <td class="g">${row.y}</td>
+      <td class="g">${fmt(row.v)}</td>
+      <td>${prev?fmt(prev):"&#8212;"}</td>
+      <td class="${aCls(chg)}">${aStr(chg)}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("tAllTime").innerHTML=
+    `<thead><tr><th>Rank</th><th>Month</th><th>Year</th><th>Net Sales</th><th>Prior Yr Same Mo</th><th>YoY %</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+function renderBestByMonth() {
+  const rows=MONTHS.map((m,mi)=>{
+    const ranked=YEARS.map(y=>({y,v:NET[y][m]||0})).sort((a,b)=>b.v-a.v);
+    const b=ranked[0],s=ranked[1];
+    const v24=NET[2024][m]||0, v25=NET[2025][m]||0;
+    const chg=pctN(v25,v24);
+    const avg=YEARS.reduce((ss,y)=>ss+(NET[y][m]||0),0)/YEARS.length;
+    return `<tr onclick="navMonth('${m}',2025)" style="cursor:pointer">
+      <td class="hi">${MONTH_FULL[mi]}</td>
+      <td class="g">${b.y} &#127942;</td>
+      <td class="g">${fmt(b.v)}</td>
+      <td>${fmt(s.v)} <span style="color:var(--muted);font-size:.7rem">(${s.y})</span></td>
+      <td>${fmt(v24)}</td>
+      <td>${fmt(v25)}</td>
+      <td class="${aCls(chg)}">${aStr(chg)}</td>
+      <td style="color:var(--muted)">${fmt(avg)}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("tBestMo").innerHTML=
+    `<thead><tr><th>Month</th><th>Best Year</th><th>Best Value</th><th>2nd Best</th><th>2024</th><th>2025</th><th>2025 vs 2024</th><th>10-Yr Avg</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+// ============================================================
+// YEAR VIEW
+// ============================================================
+function renderYear(year) {
+  const data=NET[year];
+  const prev=year>2016?NET[year-1]:null;
+  const ann=ANNUAL[year];
+  const pAnn=year>2016?ANNUAL[year-1]:null;
+  const chgAnn=pAnn?pctN(ann,pAnn):null;
+  const nAnn=year<2025?ANNUAL[year+1]:null;
+  const nChg=nAnn?pctN(nAnn,ann):null;
+  const bestMo=MONTHS.reduce((b,m)=>(data[m]||0)>(data[b]||0)?m:b,"JAN");
+  const muA=avgMU(year);
+  const rankPos=YEARS.slice().sort((a,b)=>ANNUAL[b]-ANNUAL[a]).indexOf(year)+1;
+
+  let kHtml=`
+    <div class="kc g"><div class="kl">${year} Annual Total</div><div class="kv g">${fmtM(ann)}</div><div class="ks">Rank #${rankPos} of all 10 years</div></div>
+    ${pAnn!=null?`<div class="kc ${chgAnn>=0?"gr":"re"}"><div class="kl">vs ${year-1}</div><div class="kv ${chgAnn>=0?"gr":"re"}">${chgAnn>=0?"+":""}${chgAnn.toFixed(1)}%</div><div class="ks">${chgAnn>=0?"+":""}${fmt(ann-pAnn)}</div></div>`:""}
+    <div class="kc bl"><div class="kl">Best Month</div><div class="kv bl">${fmtK(data[bestMo])}</div><div class="ks">${MONTH_FULL[MONTHS.indexOf(bestMo)]}</div></div>
+    <div class="kc g"><div class="kl">Avg Monthly</div><div class="kv w">${fmtK(ann/12)}</div><div class="ks">${year}</div></div>
+    ${muA!=null?`<div class="kc pu"><div class="kl">Avg Markup</div><div class="kv pu">${muA.toFixed(4)}x</div><div class="ks">${((muA-1)*100).toFixed(1)}% over cost</div></div>`:""}
+    ${nAnn!=null?`<div class="kc ${nChg>=0?"gr":"re"}"><div class="kl">${year+1} (Following Year)</div><div class="kv ${nChg>=0?"gr":"re"}">${fmtM(nAnn)}</div><div class="ks">${nChg>=0?"+":""}${nChg.toFixed(1)}% vs ${year}</div></div>`:""}`;
+  document.getElementById("yearKpis").innerHTML=kHtml;
+
+  // Month pills
+  let pillHtml="";
+  MONTHS.forEach(m=>{
+    const v=data[m]||0;
+    const pv=prev?prev[m]:null;
+    const chg=pv?pctN(v,pv):null;
+    const muV=MU[year]&&MU[year][m]?MU[year][m]:null;
+    pillHtml+=`<div class="mp" onclick="navMonth('${m}',${year})">
+      <div class="mn">${m}</div>
+      <div class="mv">${fmtK(v)}</div>
+      ${chg!=null?`<div class="mc ${chg>=0?"up":"dn"}">${chg>=0?"&#9650; +":"&#9660; "}${Math.abs(chg).toFixed(1)}%</div>`:`<div class="mc fl">Year 1</div>`}
+      ${muV?`<div class="mc fl" style="color:var(--purple)">${muV.toFixed(3)}x</div>`:""}
+    </div>`;
+  });
+  document.getElementById("moPills").innerHTML=pillHtml;
+
+  // Rep section (2016-2020 only)
+  const repSec=document.getElementById("repSecTitle");
+  const repDiv=document.getElementById("repYearSection");
+  repSec.style.display="flex";
+  repDiv.style.display="block";
+  renderRepYearTable(year, ann);
+
+  renderYrMoChart(year);
+  renderYrYoYChart(year);
+  renderYearDetail(year);
+}
+
+function renderYrMoChart(year) {
+  const ctx=document.getElementById("yrMoChart").getContext("2d");
+  const curr=MONTHS.map(m=>NET[year][m]||0);
+  const prev=year>2016?MONTHS.map(m=>NET[year-1][m]||0):null;
+  document.getElementById("yrChartTitle").textContent=`${year} Monthly Net Sales${prev?` vs ${year-1}`:""}`;
+  if(window._ymC) window._ymC.destroy();
+  const ds=[{label:String(year),data:curr,backgroundColor:"rgba(200,168,76,.7)",borderColor:"#c9a84c",borderWidth:2,borderRadius:4}];
+  if(prev) ds.push({label:String(year-1),data:prev,backgroundColor:"rgba(91,163,232,.35)",borderColor:"#5ba3e8",borderWidth:2,borderRadius:4});
+  window._ymC=new Chart(ctx,{type:"bar",data:{labels:MONTHS,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:"#e8ecf0",font:{size:11}}},tooltip:{callbacks:{label:i=>" "+fmt(i.raw)}}},
+      scales:{y:{ticks:{callback:v=>"$"+(v/1e3).toFixed(0)+"K"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
+  });
+}
+
+function renderYrYoYChart(year) {
+  const ctx=document.getElementById("yrYoYChart").getContext("2d");
+  if(year<=2016){if(window._yyC){window._yyC.destroy();window._yyC=null;}return;}
+  const vals=MONTHS.map(m=>{const v=NET[year][m]||0,pv=NET[year-1][m]||0;return pv?+pctN(v,pv).toFixed(1):null;});
+  if(window._yyC) window._yyC.destroy();
+  window._yyC=new Chart(ctx,{type:"bar",
+    data:{labels:MONTHS,datasets:[{label:"% vs "+(year-1),data:vals,
+      backgroundColor:vals.map(v=>v==null?"rgba(120,120,120,.3)":v>=0?"rgba(46,204,113,.7)":"rgba(231,76,60,.7)"),
+      borderColor:vals.map(v=>v==null?"#888":v>=0?"#2ecc71":"#e74c3c"),borderWidth:2,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>i.raw!=null?i.raw+"%":"N/A"}}},
+      scales:{y:{ticks:{callback:v=>v+"%"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
+  });
+}
+
+function renderRepYearTable(year, annTotal) {
+  // Gather reps with data for this year
+  const repRows=[];
+  Object.keys(REPS).forEach(rep=>{
+    if(REPS[rep][year]) {
+      const total=MONTHS.reduce((s,m)=>s+(REPS[rep][year][m]||0),0);
+      if(total>0) repRows.push({rep,total,pct:(total/annTotal*100)});
+    }
+  });
+  repRows.sort((a,b)=>b.total-a.total);
+  const rows=repRows.map((r,i)=>`<tr onclick="navRep('${r.rep.replace(/'/g,"\'")}')">
+    <td class="${i===0?"rk g1":i===1?"rk g2":i===2?"rk g3":"rk"}">#${i+1}</td>
+    <td class="hi">${r.rep}</td>
+    <td class="g">${fmt(r.total)}</td>
+    <td style="color:var(--muted)">${r.pct.toFixed(1)}%</td>
+    <td>
+      <div style="background:var(--navy3);border-radius:3px;height:6px;min-width:40px;max-width:120px">
+        <div style="background:var(--gold);height:100%;border-radius:3px;width:${Math.min(r.pct*2,100)}%"></div>
+      </div>
+    </td>
+  </tr>`).join("");
+  document.getElementById("tRepYear").innerHTML=
+    `<thead><tr><th>Rank</th><th>Rep</th><th>Net Sales ${year}</th><th>% of Office</th><th>Share</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+function renderYearDetail(year) {
+  const prev=year>2016?NET[year-1]:null;
+  const next=year<2025?NET[year+1]:null;
+  let tot=0,ptot=0,ntot=0,ctot=0;
+  const rows=MONTHS.map(m=>{
+    const v=NET[year][m]||0;
+    const pv=prev?prev[m]||0:null;
+    const nv=next?next[m]||0:null;
+    const cog=COG[year]?COG[year][m]:null;
+    const muV=MU[year]?MU[year][m]:null;
+    const chg=pv!=null?v-pv:null;
+    const chgP=pv&&pv!==0?pctN(v,pv):null;
+    const nChgP=nv&&v!==0?pctN(nv,v):null;
+    const allR=YEARS.map(y=>NET[y][m]||0).sort((a,b)=>b-a).indexOf(v)+1;
+    tot+=v; ptot+=pv||0; ntot+=nv||0; ctot+=cog||0;
+    return `<tr onclick="navMonth('${m}',${year})">
+      <td class="hi">${MONTH_FULL[MONTHS.indexOf(m)]}</td>
+      <td class="g">${fmt(v)}</td>
+      ${pv!=null?`<td style="color:var(--muted)">${fmt(pv)}</td>
+        <td class="${chg>=0?"pos":"neg"}">${chg>=0?"+":""}${fmt(chg)}</td>
+        <td class="${aCls(chgP)}">${aStr(chgP)}</td>`:""}
+      ${nv!=null?`<td style="color:var(--muted)">${fmt(nv)}</td>
+        <td class="${aCls(nChgP)}">${aStr(nChgP)}</td>`:""}
+      <td class="pu">${cog?fmt(cog):"N/A"}</td>
+      <td class="pu">${muV?muV.toFixed(4)+"x":"N/A"}</td>
+      <td class="${allR===1?"g":allR<=3?"pos":"fl"}">#${allR} of 10</td>
+    </tr>`;
+  }).join("");
+
+  const totRow=`<tr class="tot">
+    <td>FULL YEAR</td>
+    <td>${fmt(tot)}</td>
+    ${prev?`<td>${fmt(ptot)}</td>
+      <td class="${(tot-ptot)>=0?"pos":"neg"}">${(tot-ptot)>=0?"+":""}${fmt(tot-ptot)}</td>
+      <td class="${(tot-ptot)>=0?"pos":"neg"}">${(tot-ptot)>=0?"+":""}${pctN(tot,ptot).toFixed(1)}%</td>`:""}
+    ${next?`<td>${fmt(ntot)}</td>
+      <td class="${(ntot-tot)>=0?"pos":"neg"}">${(ntot-tot)>=0?"+":""}${pctN(ntot,tot).toFixed(1)}%</td>`:""}
+    <td class="pu">${ctot>0?fmt(ctot):"N/A"}</td>
+    <td class="pu">${avgMU(year)?avgMU(year).toFixed(4)+"x":"N/A"}</td>
+    <td>${YEARS.slice().sort((a,b)=>ANNUAL[b]-ANNUAL[a]).indexOf(year)+1} of 10</td>
+  </tr>`;
+
+  const th=`<thead><tr>
+    <th>Month</th><th>${year} Net</th>
+    ${prev?`<th>${year-1} Net</th><th>YoY $</th><th>YoY %</th>`:""}
+    ${next?`<th>${year+1} Net</th><th>Next Yr %</th>`:""}
+    <th>COG</th><th>M/U</th><th>Rank</th>
+  </tr></thead>`;
+  document.getElementById("tYearDetail").innerHTML=th+`<tbody>${rows}${totRow}</tbody>`;
+}
+
+// ============================================================
+// MONTH VIEW
+// ============================================================
+function renderMonth(month, fromYear) {
+  const mi=MONTHS.indexOf(month);
+  const mF=MONTH_FULL[mi];
+  document.getElementById("moBk").textContent="&#8592; Back to "+fromYear;
+  document.getElementById("moBk").onclick=()=>navYear(fromYear);
+  document.getElementById("moChartTitle").textContent=`${mF} Net Sales &#8212; All Years`;
+  document.getElementById("moTableTitle").textContent=`${mF} &#8212; Year-by-Year Results`;
+
+  const vals=YEARS.map(y=>({y,v:NET[y][month]||0}));
+  const sorted=vals.slice().sort((a,b)=>b.v-a.v);
+  const best=sorted[0];
+  const avg=vals.reduce((s,x)=>s+x.v,0)/vals.length;
+  const v25=NET[2025][month]||0, v24=NET[2024][month]||0;
+  const chg=pctN(v25,v24);
+
+  document.getElementById("moKpis").innerHTML=`
+    <div class="kc g"><div class="kl">All-Time Best ${mF}</div><div class="kv g">${fmt(best.v)}</div><div class="ks">${best.y} &#127942;</div></div>
+    <div class="kc bl"><div class="kl">10-Year Average</div><div class="kv bl">${fmt(avg)}</div><div class="ks">All ${mF}s</div></div>
+    <div class="kc ${chg!=null?(chg>=0?"gr":"re"):"g"}"><div class="kl">2025 vs 2024</div><div class="kv ${chg!=null?(chg>=0?"gr":"re"):"g"}">${chg!=null?(chg>=0?"+":"")+chg.toFixed(1)+"%":"&#8212;"}</div><div class="ks">${fmt(v25)} vs ${fmt(v24)}</div></div>
+    <div class="kc g"><div class="kl">2024 ${mF}</div><div class="kv w">${fmt(v24)}</div><div class="ks">Prior Year</div></div>`;
+
+  const ctx=document.getElementById("moChart").getContext("2d");
+  if(window._moC) window._moC.destroy();
+  window._moC=new Chart(ctx,{type:"bar",
+    data:{labels:YEARS.map(String),datasets:[{label:`${mF} Net`,
+      data:YEARS.map(y=>NET[y][month]||0),
+      backgroundColor:YEARS.map(y=>y===best.y?"rgba(232,200,74,.9)":"rgba(91,163,232,.65)"),
+      borderColor:YEARS.map(y=>y===best.y?"#e8c84a":"#5ba3e8"),borderWidth:2,borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>" "+fmt(i.raw)}}},
+      scales:{y:{ticks:{callback:v=>"$"+(v/1e3).toFixed(0)+"K"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
+  });
+
+  const rows=vals.map(({y,v})=>{
+    const rank=sorted.findIndex(x=>x.y===y)+1;
+    const pv=y>2016?NET[y-1][month]||0:null;
+    const chgV=pv!=null?v-pv:null;
+    const chgP=pv&&pv!==0?pctN(v,pv):null;
+    const muV=MU[y]&&MU[y][month]?MU[y][month]:null;
+    const cogV=COG[y]&&COG[y][month]?COG[y][month]:null;
+    const rk=rank===1?"rk g1":rank===2?"rk g2":rank===3?"rk g3":"rk";
+    const isFrom=y===fromYear;
+    return `<tr class="${isFrom?"hi2":""}">
+      <td class="${rk}">#${rank}</td>
+      <td class="${isFrom?"g":"hi"}">${y}${isFrom?" &#8592;":""}</td>
+      <td class="g">${fmt(v)}</td>
+      <td class="${chgV!=null?(chgV>=0?"pos":"neg"):"fl"}">${chgV!=null?(chgV>=0?"+":"")+fmt(chgV):"&#8212;"}</td>
+      <td class="${aCls(chgP)}">${aStr(chgP)}</td>
+      <td class="pu">${cogV?fmt(cogV):"N/A"}</td>
+      <td class="pu">${muV?muV.toFixed(4)+"x":"N/A"}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("tMoCross").innerHTML=
+    `<thead><tr><th>Rank</th><th>Year</th><th>Net Sales</th><th>vs Prior Yr $</th><th>vs Prior Yr %</th><th>COG</th><th>M/U</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+// ============================================================
+// REPS VIEW
+// ============================================================
+function renderReps() {
+  const repList=Object.keys(REPS).map(rep=>{
+    const entry=REPS[rep];
+    const total=repLifetimeTotal(rep);
+    const yrs=Object.keys(entry).map(Number).sort();
+    const bestYr=yrs.reduce((b,y)=>repYearTotal(rep,y)>repYearTotal(rep,b)?y:b,yrs[0]);
+    const bestYrTotal=repYearTotal(rep,bestYr);
+    const allMos=yrs.flatMap(y=>MONTHS.map(m=>({y,m,v:entry[y][m]||0}))).filter(x=>x.v>0);
+    const bestMo=allMos.length?allMos.reduce((b,x)=>x.v>b.v?x:b):null;
+    return {rep,total,yrs,bestYr,bestYrTotal,bestMo};
+  }).sort((a,b)=>b.total-a.total);
+
+  const grandTotal=repList.reduce((s,r)=>s+r.total,0);
+
+  // KPIs
+  document.getElementById("repsKpis").innerHTML=`
+    <div class="kc g"><div class="kl">Total Reps Tracked</div><div class="kv g">40</div><div class="ks">2016&#8211;2025</div></div>
+    <div class="kc gr"><div class="kl">Total Rep Revenue</div><div class="kv gr">${fmtM(grandTotal)}</div><div class="ks">All reps combined</div></div>
+    <div class="kc bl"><div class="kl">Top Rep All-Time</div><div class="kv bl">${repList[0].rep}</div><div class="ks">${fmtM(repList[0].total)}</div></div>
+    <div class="kc g"><div class="kl">Biggest Single Year</div><div class="kv w">${repList.reduce((b,r)=>r.bestYrTotal>b.v?{n:r.rep,y:r.bestYr,v:r.bestYrTotal}:b,{n:"",y:0,v:0}).n}</div><div class="ks">${fmtM(repList.reduce((b,r)=>r.bestYrTotal>b.v?{v:r.bestYrTotal}:b,{v:0}).v)}</div></div>`;
+
+  const rows=repList.map((r,i)=>{
+    const pctShare=(r.total/grandTotal*100).toFixed(1);
+    const yrSpan=r.yrs.length>1?`${r.yrs[0]}&#8211;${r.yrs[r.yrs.length-1]}`:`${r.yrs[0]}`;
+    return `<tr onclick="navRep('${r.rep.replace(/'/g,"\'")}')">
+      <td class="${i===0?"rk g1":i===1?"rk g2":i===2?"rk g3":"rk"}">#${i+1}</td>
+      <td class="hi">${r.rep}</td>
+      <td class="g">${fmt(r.total)}</td>
+      <td style="color:var(--muted)">${pctShare}%</td>
+      <td style="color:var(--muted)">${yrSpan}</td>
+      <td>${r.yrs.length} yr${r.yrs.length!==1?"s":""}</td>
+      <td class="g">${fmt(r.bestYrTotal)}</td>
+      <td style="color:var(--muted)">${r.bestYr}</td>
+      <td class="g">${r.bestMo?fmt(r.bestMo.v):"&#8212;"}</td>
+      <td style="color:var(--muted)">${r.bestMo?`${r.bestMo.m} ${r.bestMo.y}`:"&#8212;"}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("tReps").innerHTML=
+    `<thead><tr><th>Rank</th><th>Rep Name</th><th>Lifetime Net Sales</th><th>% of Total</th><th>Active Years</th><th>Yrs Active</th><th>Best Year Total</th><th>Best Year</th><th>Best Month</th><th>Best Mo Date</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+// ============================================================
+// REP DETAIL VIEW
+// ============================================================
+function renderRepDetail(repName) {
+  const entry=REPS[repName];
+  if(!entry){document.getElementById("rdKpis").innerHTML="<p>No data</p>";return;}
+  const yrs=Object.keys(entry).map(Number).sort();
+  const totals=yrs.map(y=>({y,t:MONTHS.reduce((s,m)=>s+(entry[y][m]||0),0)}));
+  const lifetime=totals.reduce((s,x)=>s+x.t,0);
+  const bestYr=totals.reduce((b,x)=>x.t>b.t?x:b,{t:0});
+  const allMos=yrs.flatMap(y=>MONTHS.map(m=>({y,m,v:entry[y][m]||0}))).filter(x=>x.v>0);
+  const bestMo=allMos.length?allMos.reduce((b,x)=>x.v>b.v?x:b):null;
+
+  document.getElementById("rdChartTitle").textContent=`${repName} — Annual Net Sales`;
+  document.getElementById("rdDetailSec").textContent=`${repName} — Monthly Breakdown by Year`;
+
+  document.getElementById("rdKpis").innerHTML=`
+    <div class="kc g"><div class="kl">Lifetime Net Sales</div><div class="kv g">${fmtM(lifetime)}</div><div class="ks">${yrs[0]}&#8211;${yrs[yrs.length-1]}</div></div>
+    <div class="kc gr"><div class="kl">Best Year</div><div class="kv gr">${fmt(bestYr.t)}</div><div class="ks">${bestYr.y}</div></div>
+    <div class="kc bl"><div class="kl">Best Single Month</div><div class="kv bl">${bestMo?fmt(bestMo.v):"&#8212;"}</div><div class="ks">${bestMo?`${bestMo.m} ${bestMo.y}`:"&#8212;"}</div></div>
+    <div class="kc g"><div class="kl">Years Active</div><div class="kv w">${yrs.length}</div><div class="ks">${yrs.join(", ")}</div></div>`;
+
+  const ctx=document.getElementById("rdChart").getContext("2d");
+  if(window._rdC) window._rdC.destroy();
+  const best2=Math.max(...totals.map(x=>x.t));
+  window._rdC=new Chart(ctx,{type:"bar",
+    data:{labels:yrs.map(String),datasets:[{label:"Net Sales",data:totals.map(x=>x.t),
+      backgroundColor:totals.map(x=>x.t===best2?"rgba(232,200,74,.9)":"rgba(91,163,232,.65)"),
+      borderColor:totals.map(x=>x.t===best2?"#e8c84a":"#5ba3e8"),borderWidth:2,borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>" "+fmt(i.raw)}}},
+      scales:{y:{ticks:{callback:v=>"$"+(v/1e3).toFixed(0)+"K"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
+  });
+
+  // Detail table: rows=months, cols=years
+  const th=`<thead><tr><th>Month</th>${yrs.map(y=>`<th>${y}</th>`).join("")}<th>Best Year</th></tr></thead>`;
+  const rows=MONTHS.map((m,mi)=>{
+    const vals=yrs.map(y=>entry[y][m]||0);
+    const bestV=Math.max(...vals);
+    const bestY2=vals.indexOf(bestV);
+    const cells=vals.map((v,i)=>`<td class="${v===bestV&&v>0?"g":v>0?"hi":"fl"}">${v>0?fmt(v):"&#8212;"}</td>`).join("");
+    return `<tr><td class="hi">${MONTH_FULL[mi]}</td>${cells}<td class="pu">${bestV>0?yrs[bestY2]:"&#8212;"}</td></tr>`;
+  });
+  const totRow=`<tr class="tot"><td>ANNUAL</td>${totals.map(x=>`<td>${fmt(x.t)}</td>`).join("")}<td>${bestYr.y}</td></tr>`;
+  document.getElementById("tRepDetail").innerHTML=th+`<tbody>${rows.join("")}${totRow}</tbody>`;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener("DOMContentLoaded", function() {
+  renderHome();
+});
+</script>
+</body>
+</html>
