@@ -123,7 +123,7 @@ body{background:var(--navy);color:var(--text);font-family:'Segoe UI',Arial,sans-
   </div>
   <div class="two">
     <div class="cc"><div class="ct">&#128200; Year-Over-Year Growth Rate (%)</div><div class="cw"><canvas id="growthChart"></canvas></div></div>
-    <div class="cc"><div class="ct">&#128197; 10-Year Average by Month</div><div class="cw"><canvas id="avgChart"></canvas></div></div>
+    <div class="cc"><div class="ct">&#128197; 11-Year Average by Month</div><div class="cw"><canvas id="avgChart"></canvas></div></div>
   </div>
   <div class="sec">&#127942; All-Time Best Months (Top 25)</div>
   <div class="tw"><table class="tbl" id="tAllTime"></table></div>
@@ -702,7 +702,7 @@ function renderAvgChart() {
   const avgs=MONTHS.map(m=>YEARS.reduce((s,y)=>s+(NET[y][m]||0),0)/YEARS.length);
   if(window._avC) window._avC.destroy();
   window._avC=new Chart(ctx,{type:"bar",
-    data:{labels:MONTHS,datasets:[{label:"10-Yr Avg",data:avgs,
+    data:{labels:MONTHS,datasets:[{label:"11-Yr Avg",data:avgs,
       backgroundColor:"rgba(200,168,76,.65)",borderColor:"#c9a84c",borderWidth:2,borderRadius:4}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>" Avg: "+fmt(i.raw)}}},
@@ -748,7 +748,7 @@ function renderBestByMonth() {
     </tr>`;
   }).join("");
   document.getElementById("tBestMo").innerHTML=
-    `<thead><tr><th>Month</th><th>Best Year</th><th>Best Value</th><th>2nd Best</th><th>2024</th><th>2025</th><th>2025 vs 2024</th><th>10-Yr Avg</th></tr></thead><tbody>${rows}</tbody>`;
+    `<thead><tr><th>Month</th><th>Best Year</th><th>Best Value</th><th>2nd Best</th><th>2024</th><th>2025</th><th>2025 vs 2024</th><th>11-Yr Avg</th></tr></thead><tbody>${rows}</tbody>`;
 }
 
 // ============================================================
