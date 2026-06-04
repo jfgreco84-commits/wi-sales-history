@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>DBW Wisconsin Sales Command Center</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha256-5HyNLJXHTBMm6pnOKXEGdaRfLHvFZdlKkjGbHQVLsas=" crossorigin="anonymous" onerror="document.body.innerHTML='<div style=padding:40px;color:#e74c3c;font-family:sans-serif><h2>Chart.js failed to load from CDN. Please check your internet connection and reload.</h2></div>'"></script>
 <style>
 :root{
   --navy:#050e1d;--navy2:#0a1628;--navy3:#0f2040;--card:#0d1f38;
@@ -650,9 +650,9 @@ function renderHome() {
     const chg=pr?pctN(ANNUAL[y],pr):null;
     const isBest=y===bestY;
     ygHtml+=`<div class="yc${isBest?" best":""}" onclick="navYear(${y})">
-      <div class="yy">${y}${isBest?" &#127942;":""}</div>
+      <div class="yy">${y}${isBest?" &#127942;":""}${y===2026?` <span style="font-size:.6rem;color:var(--muted);font-weight:400">(partial)</span>`:""}</div>
       <div class="ys">${fmtM(ANNUAL[y])}</div>
-      ${chg!=null?`<div class="yt ${chg>=0?"up":"dn"}">${chg>=0?"&#9650;":"&#9660;"} ${Math.abs(chg).toFixed(1)}% vs ${y-1}</div>`:`<div class="yt fl">Year 1</div>`}
+      ${chg!=null?`<div class="yt ${chg>=0?"up":"dn"}">${chg>=0?"&#9650;":"&#9660;"} ${Math.abs(chg).toFixed(1)}% vs ${y-1}${y===2026?` <span style="color:var(--muted);font-size:.65rem">(thru May)</span>`:""}</div>`:`<div class="yt fl">Year 1</div>`}
     </div>`;
   });
   document.getElementById("yearGrid").innerHTML=ygHtml;
@@ -684,7 +684,7 @@ function renderAnnualChart() {
 
 function renderGrowthChart() {
   const ctx=document.getElementById("growthChart").getContext("2d");
-  const labels=YEARS.slice(1).map(String);
+  const labels=YEARS.slice(1).map(y=>y===2026?y+" (partial)":String(y));
   const vals=YEARS.slice(1).map(y=>{const p=pctN(ANNUAL[y],ANNUAL[y-1]);return p!=null?+p.toFixed(1):0;});
   if(window._gC) window._gC.destroy();
   window._gC=new Chart(ctx,{type:"bar",
@@ -692,14 +692,14 @@ function renderGrowthChart() {
       backgroundColor:vals.map(v=>v>=0?"rgba(46,204,113,.7)":"rgba(231,76,60,.7)"),
       borderColor:vals.map(v=>v>=0?"#2ecc71":"#e74c3c"),borderWidth:2,borderRadius:4}]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>i.raw+"%"}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>{const yr=YEARS.slice(1)[i.dataIndex];return i.raw+"%"+(yr===2026?" (partial year — thru May)":"")}}}},
       scales:{y:{ticks:{callback:v=>v+"%"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
   });
 }
 
 function renderAvgChart() {
   const ctx=document.getElementById("avgChart").getContext("2d");
-  const avgs=MONTHS.map(m=>YEARS.reduce((s,y)=>s+(NET[y][m]||0),0)/YEARS.length);
+  const avgs=MONTHS.map(m=>{const vals=YEARS.map(y=>NET[y][m]).filter(v=>v!=null);return vals.length?vals.reduce((s,v)=>s+v,0)/vals.length:0;});
   if(window._avC) window._avC.destroy();
   window._avC=new Chart(ctx,{type:"bar",
     data:{labels:MONTHS,datasets:[{label:"11-Yr Avg",data:avgs,
@@ -735,7 +735,7 @@ function renderBestByMonth() {
     const b=ranked[0],s=ranked[1];
     const v24=NET[2024][m]||0, v25=NET[2025][m]||0;
     const chg=pctN(v25,v24);
-    const avg=YEARS.reduce((ss,y)=>ss+(NET[y][m]||0),0)/YEARS.length;
+    const nonNullVals=YEARS.map(y=>NET[y][m]).filter(v=>v!=null);const avg=nonNullVals.length?nonNullVals.reduce((s,v)=>s+v,0)/nonNullVals.length:0;
     return `<tr onclick="navMonth('${m}',2025)" style="cursor:pointer">
       <td class="hi">${MONTH_FULL[mi]}</td>
       <td class="g">${b.y} &#127942;</td>
