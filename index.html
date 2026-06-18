@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>DBW Wisconsin Sales Command Center</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha256-5HyNLJXHTBMm6pnOKXEGdaRfLHvFZdlKkjGbHQVLsas=" crossorigin="anonymous" onerror="document.body.innerHTML='<div style=padding:40px;color:#e74c3c;font-family:sans-serif><h2>Chart.js failed to load from CDN. Please check your internet connection and reload.</h2></div>'"></script>
 <style>
 :root{
   --navy:#050e1d;--navy2:#0a1628;--navy3:#0f2040;--card:#0d1f38;
@@ -86,6 +85,19 @@ body{background:var(--navy);color:var(--text);font-family:'Segoe UI',Arial,sans-
 ::-webkit-scrollbar-track{background:var(--navy)}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+/* ---- Pure HTML/CSS bar charts (no canvas / no library — renders on every phone) ---- */
+.chartbox{height:100%;width:100%}
+.barrow{display:flex;align-items:stretch;gap:3px;height:100%;width:100%}
+.barcol{flex:1 1 0;min-width:0;display:flex;flex-direction:column;height:100%}
+.barwrap{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-height:0}
+.barwrap.top{justify-content:flex-end}
+.barwrap.bot{justify-content:flex-start}
+.barfill{width:80%;max-width:34px;border-radius:4px 4px 0 0;min-height:2px}
+.barfill.botfill{border-radius:0 0 4px 4px}
+.barlab{flex:0 0 auto;font-size:.5rem;color:var(--muted);text-align:center;margin-top:3px;white-space:nowrap;overflow:hidden}
+.barzero{height:1px;background:var(--border);width:100%}
+.chartlegend{font-size:.6rem;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0}
+.chartlegend i{display:inline-block;width:9px;height:9px;border-radius:2px;vertical-align:middle;margin:0 3px 0 8px}
 </style>
 </head>
 <body>
@@ -119,11 +131,11 @@ body{background:var(--navy);color:var(--text);font-family:'Segoe UI',Arial,sans-
   <div class="yg" id="yearGrid"></div>
   <div class="cc">
     <div class="ct">&#128202; Annual Office Net Sales &#8212; 2016 to 2026 <span class="note">(click bar to drill into year)</span></div>
-    <div class="cw tall"><canvas id="annualChart"></canvas></div>
+    <div class="cw tall"><div id="annualChart" class="chartbox"></div></div>
   </div>
   <div class="two">
-    <div class="cc"><div class="ct">&#128200; Year-Over-Year Growth Rate (%)</div><div class="cw"><canvas id="growthChart"></canvas></div></div>
-    <div class="cc"><div class="ct">&#128197; 11-Year Average by Month</div><div class="cw"><canvas id="avgChart"></canvas></div></div>
+    <div class="cc"><div class="ct">&#128200; Year-Over-Year Growth Rate (%)</div><div class="cw"><div id="growthChart" class="chartbox"></div></div></div>
+    <div class="cc"><div class="ct">&#128197; 10-Year Average by Month</div><div class="cw"><div id="avgChart" class="chartbox"></div></div></div>
   </div>
   <div class="sec">&#127942; All-Time Best Months (Top 25)</div>
   <div class="tw"><table class="tbl" id="tAllTime"></table></div>
@@ -138,8 +150,8 @@ body{background:var(--navy);color:var(--text);font-family:'Segoe UI',Arial,sans-
   <div class="sec">Monthly Breakdown &#8212; Click a Month to Compare Across All Years</div>
   <div class="mg" id="moPills"></div>
   <div class="two">
-    <div class="cc"><div class="ct" id="yrChartTitle">Monthly Breakdown</div><div class="cw"><canvas id="yrMoChart"></canvas></div></div>
-    <div class="cc"><div class="ct">Month-over-Prior-Year Change (%)</div><div class="cw"><canvas id="yrYoYChart"></canvas></div></div>
+    <div class="cc"><div class="ct" id="yrChartTitle">Monthly Breakdown</div><div class="cw"><div id="yrMoChart" class="chartbox"></div></div></div>
+    <div class="cc"><div class="ct">Month-over-Prior-Year Change (%)</div><div class="cw"><div id="yrYoYChart" class="chartbox"></div></div></div>
   </div>
   <div class="sec" id="repSecTitle" style="display:none">Rep Breakdown</div>
   <div id="repYearSection" style="display:none">
@@ -153,7 +165,7 @@ body{background:var(--navy);color:var(--text);font-family:'Segoe UI',Arial,sans-
 <div class="view" id="v-month">
   <button class="bb" id="moBk" onclick="">&#8592; Back to Year</button>
   <div class="kg" id="moKpis"></div>
-  <div class="cc"><div class="ct" id="moChartTitle">Net Sales &#8212; All Years</div><div class="cw"><canvas id="moChart"></canvas></div></div>
+  <div class="cc"><div class="ct" id="moChartTitle">Net Sales &#8212; All Years</div><div class="cw"><div id="moChart" class="chartbox"></div></div></div>
   <div class="sec" id="moTableTitle">Year-by-Year Results</div>
   <div class="tw"><table class="tbl" id="tMoCross"></table></div>
   <div id="moRepSection"></div>
@@ -171,7 +183,7 @@ body{background:var(--navy);color:var(--text);font-family:'Segoe UI',Arial,sans-
 <div class="view" id="v-repdetail">
   <button class="bb" onclick="showTab('reps')">&#8592; Back to Rep Roster</button>
   <div class="kg" id="rdKpis"></div>
-  <div class="cc"><div class="ct" id="rdChartTitle">Annual Sales</div><div class="cw"><canvas id="rdChart"></canvas></div></div>
+  <div class="cc"><div class="ct" id="rdChartTitle">Annual Sales</div><div class="cw"><div id="rdChart" class="chartbox"></div></div></div>
   <div class="sec" id="rdDetailSec">Monthly Breakdown by Year</div>
   <div class="tw"><table class="tbl" id="tRepDetail"></table></div>
 </div>
@@ -509,6 +521,73 @@ function repLifetimeTotal(rep) {
   return Object.values(REPS[rep]).reduce((s,yr)=>s+MONTHS.reduce((ss,m)=>ss+(yr[m]||0),0),0);
 }
 
+// Run a render step in isolation so one failure can't blank sibling sections
+function safe(fn){ try{ return fn(); }catch(e){ console.error("[render]", e); } }
+
+// ---- HTML/CSS bar-chart engine (no <canvas>, no library — works on every device) ----
+function clearHost(id){
+  var host=document.getElementById(id); if(!host) return null;
+  while(host.firstChild) host.removeChild(host.firstChild);
+  return host;
+}
+// bars: [{label, value, color?, highlight?, title?, onClick?}]   opts:{signed, highlightColor}
+function barChart(id, bars, opts){
+  opts=opts||{};
+  var host=clearHost(id); if(!host) return;
+  var maxV=Math.max.apply(null, bars.map(function(b){return Math.abs(+b.value||0);}).concat([1]));
+  var row=document.createElement("div"); row.className="barrow";
+  bars.forEach(function(b){
+    var v=+b.value||0;
+    var col=document.createElement("div"); col.className="barcol";
+    if(b.onClick){ col.style.cursor="pointer"; col.addEventListener("click", b.onClick); }
+    if(b.title) col.title=b.title;
+    if(opts.signed){
+      var top=document.createElement("div"); top.className="barwrap top";
+      var bot=document.createElement("div"); bot.className="barwrap bot";
+      var fill=document.createElement("div"); fill.className="barfill"+(v<0?" botfill":"");
+      fill.style.height=(Math.abs(v)/maxV*100)+"%";
+      fill.style.background=v>=0?"var(--green)":"var(--red)";
+      if(v>=0) top.appendChild(fill); else bot.appendChild(fill);
+      col.appendChild(top); col.appendChild(bot);
+    } else {
+      var wrap=document.createElement("div"); wrap.className="barwrap";
+      var f=document.createElement("div"); f.className="barfill";
+      f.style.height=(Math.abs(v)/maxV*100)+"%";
+      f.style.background=b.highlight?(opts.highlightColor||"var(--gold2)"):(b.color||"var(--blue)");
+      wrap.appendChild(f); col.appendChild(wrap);
+    }
+    var lab=document.createElement("div"); lab.className="barlab"; lab.textContent=b.label;
+    col.appendChild(lab);
+    row.appendChild(col);
+  });
+  host.appendChild(row);
+}
+// grouped two-series bars (e.g. current year vs prior year)
+function groupedBarChart(id, labels, A, B, opts){
+  opts=opts||{};
+  var host=clearHost(id); if(!host) return;
+  var all=A.concat(B||[]).map(function(v){return Math.abs(+v||0);}).concat([1]);
+  var maxV=Math.max.apply(null, all);
+  var row=document.createElement("div"); row.className="barrow";
+  labels.forEach(function(lb,i){
+    var col=document.createElement("div"); col.className="barcol";
+    if(opts.titleFn) col.title=lb+": "+opts.titleFn(i);
+    var wrap=document.createElement("div"); wrap.className="barwrap";
+    var grp=document.createElement("div");
+    grp.style.cssText="display:flex;align-items:flex-end;justify-content:center;gap:2px;width:100%;height:100%";
+    var f1=document.createElement("div"); f1.className="barfill"; f1.style.width="42%"; f1.style.maxWidth="13px";
+    f1.style.height=(Math.abs(+A[i]||0)/maxV*100)+"%"; f1.style.background=opts.colorA||"var(--gold)";
+    grp.appendChild(f1);
+    if(B){ var f2=document.createElement("div"); f2.className="barfill"; f2.style.width="42%"; f2.style.maxWidth="13px";
+      f2.style.height=(Math.abs(+B[i]||0)/maxV*100)+"%"; f2.style.background=opts.colorB||"rgba(91,163,232,.55)";
+      grp.appendChild(f2); }
+    wrap.appendChild(grp); col.appendChild(wrap);
+    var lab=document.createElement("div"); lab.className="barlab"; lab.textContent=lb;
+    col.appendChild(lab); row.appendChild(col);
+  });
+  host.appendChild(row);
+}
+
 // ============================================================
 // STATE
 // ============================================================
@@ -650,64 +729,40 @@ function renderHome() {
     const chg=pr?pctN(ANNUAL[y],pr):null;
     const isBest=y===bestY;
     ygHtml+=`<div class="yc${isBest?" best":""}" onclick="navYear(${y})">
-      <div class="yy">${y}${isBest?" &#127942;":""}${y===2026?` <span style="font-size:.6rem;color:var(--muted);font-weight:400">(partial)</span>`:""}</div>
+      <div class="yy">${y}${isBest?" &#127942;":""}</div>
       <div class="ys">${fmtM(ANNUAL[y])}</div>
-      ${chg!=null?`<div class="yt ${chg>=0?"up":"dn"}">${chg>=0?"&#9650;":"&#9660;"} ${Math.abs(chg).toFixed(1)}% vs ${y-1}${y===2026?` <span style="color:var(--muted);font-size:.65rem">(thru May)</span>`:""}</div>`:`<div class="yt fl">Year 1</div>`}
+      ${chg!=null?`<div class="yt ${chg>=0?"up":"dn"}">${chg>=0?"&#9650;":"&#9660;"} ${Math.abs(chg).toFixed(1)}% vs ${y-1}</div>`:`<div class="yt fl">Year 1</div>`}
     </div>`;
   });
   document.getElementById("yearGrid").innerHTML=ygHtml;
 
-  renderAnnualChart();
-  renderGrowthChart();
-  renderAvgChart();
-  renderAllTimeBest();
-  renderBestByMonth();
+  safe(renderAnnualChart);
+  safe(renderGrowthChart);
+  safe(renderAvgChart);
+  safe(renderAllTimeBest);
+  safe(renderBestByMonth);
 }
 
 function renderAnnualChart() {
-  const ctx=document.getElementById("annualChart").getContext("2d");
   const best=Math.max(...YEARS.map(y=>ANNUAL[y]));
-  if(window._aC) window._aC.destroy();
-  window._aC=new Chart(ctx,{
-    type:"bar",
-    data:{labels:YEARS.map(String),datasets:[{
-      label:"Net Sales",data:YEARS.map(y=>ANNUAL[y]),
-      backgroundColor:YEARS.map(y=>ANNUAL[y]===best?"rgba(232,200,74,.9)":"rgba(91,163,232,.65)"),
-      borderColor:YEARS.map(y=>ANNUAL[y]===best?"#e8c84a":"#5ba3e8"),borderWidth:2,borderRadius:5
-    }]},
-    options:{responsive:true,maintainAspectRatio:false,
-      onClick:(e,els)=>{if(els.length) navYear(YEARS[els[0].index]);},
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>" "+fmtM(i.raw)}}},
-      scales:{y:{ticks:{callback:v=>"$"+(v/1e6).toFixed(1)+"M"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
-  });
+  barChart("annualChart", YEARS.map(y=>({
+    label:String(y), value:ANNUAL[y], highlight:ANNUAL[y]===best,
+    title:y+": "+fmtM(ANNUAL[y]), onClick:()=>navYear(y)
+  })));
 }
 
 function renderGrowthChart() {
-  const ctx=document.getElementById("growthChart").getContext("2d");
-  const labels=YEARS.slice(1).map(y=>y===2026?y+" (partial)":String(y));
-  const vals=YEARS.slice(1).map(y=>{const p=pctN(ANNUAL[y],ANNUAL[y-1]);return p!=null?+p.toFixed(1):0;});
-  if(window._gC) window._gC.destroy();
-  window._gC=new Chart(ctx,{type:"bar",
-    data:{labels,datasets:[{label:"YoY%",data:vals,
-      backgroundColor:vals.map(v=>v>=0?"rgba(46,204,113,.7)":"rgba(231,76,60,.7)"),
-      borderColor:vals.map(v=>v>=0?"#2ecc71":"#e74c3c"),borderWidth:2,borderRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>{const yr=YEARS.slice(1)[i.dataIndex];return i.raw+"%"+(yr===2026?" (partial year — thru May)":"")}}}},
-      scales:{y:{ticks:{callback:v=>v+"%"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
-  });
+  barChart("growthChart", YEARS.slice(1).map(y=>{
+    const p=pctN(ANNUAL[y],ANNUAL[y-1]); const v=p!=null?+p.toFixed(1):0;
+    return {label:String(y), value:v, title:(y-1)+"→"+y+": "+(v>=0?"+":"")+v+"%"};
+  }), {signed:true});
 }
 
 function renderAvgChart() {
-  const ctx=document.getElementById("avgChart").getContext("2d");
-  const avgs=MONTHS.map(m=>{const vals=YEARS.map(y=>NET[y][m]).filter(v=>v!=null);return vals.length?vals.reduce((s,v)=>s+v,0)/vals.length:0;});
-  if(window._avC) window._avC.destroy();
-  window._avC=new Chart(ctx,{type:"bar",
-    data:{labels:MONTHS,datasets:[{label:"11-Yr Avg",data:avgs,
-      backgroundColor:"rgba(200,168,76,.65)",borderColor:"#c9a84c",borderWidth:2,borderRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>" Avg: "+fmt(i.raw)}}},
-      scales:{y:{ticks:{callback:v=>"$"+(v/1e3).toFixed(0)+"K"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
-  });
+  const avgs=MONTHS.map(m=>YEARS.reduce((s,y)=>s+(NET[y][m]||0),0)/YEARS.length);
+  barChart("avgChart", MONTHS.map((m,i)=>({
+    label:m, value:avgs[i], color:"var(--gold)", title:m+" 11-yr avg: "+fmt(Math.round(avgs[i]))
+  })));
 }
 
 function renderAllTimeBest() {
@@ -735,7 +790,7 @@ function renderBestByMonth() {
     const b=ranked[0],s=ranked[1];
     const v24=NET[2024][m]||0, v25=NET[2025][m]||0;
     const chg=pctN(v25,v24);
-    const nonNullVals=YEARS.map(y=>NET[y][m]).filter(v=>v!=null);const avg=nonNullVals.length?nonNullVals.reduce((s,v)=>s+v,0)/nonNullVals.length:0;
+    const avg=YEARS.reduce((ss,y)=>ss+(NET[y][m]||0),0)/YEARS.length;
     return `<tr onclick="navMonth('${m}',2025)" style="cursor:pointer">
       <td class="hi">${MONTH_FULL[mi]}</td>
       <td class="g">${b.y} &#127942;</td>
@@ -748,7 +803,7 @@ function renderBestByMonth() {
     </tr>`;
   }).join("");
   document.getElementById("tBestMo").innerHTML=
-    `<thead><tr><th>Month</th><th>Best Year</th><th>Best Value</th><th>2nd Best</th><th>2024</th><th>2025</th><th>2025 vs 2024</th><th>11-Yr Avg</th></tr></thead><tbody>${rows}</tbody>`;
+    `<thead><tr><th>Month</th><th>Best Year</th><th>Best Value</th><th>2nd Best</th><th>2024</th><th>2025</th><th>2025 vs 2024</th><th>10-Yr Avg</th></tr></thead><tbody>${rows}</tbody>`;
 }
 
 // ============================================================
@@ -805,41 +860,40 @@ function renderYear(year) {
   const repDiv=document.getElementById("repYearSection");
   repSec.style.display="flex";
   repDiv.style.display="block";
-  renderRepYearTable(year, ann);
+  safe(()=>renderRepYearTable(year, ann));
 
-  renderYrMoChart(year);
-  renderYrYoYChart(year);
-  renderYearDetail(year);
+  safe(()=>renderYrMoChart(year));
+  safe(()=>renderYrYoYChart(year));
+  safe(()=>renderYearDetail(year));
 }
 
 function renderYrMoChart(year) {
-  const ctx=document.getElementById("yrMoChart").getContext("2d");
   const curr=MONTHS.map(m=>NET[year][m]||0);
   const prev=year>2016?MONTHS.map(m=>NET[year-1][m]||0):null;
-  document.getElementById("yrChartTitle").textContent=`${year} Monthly Net Sales${prev?` vs ${year-1}`:""}`;
-  if(window._ymC) window._ymC.destroy();
-  const ds=[{label:String(year),data:curr,backgroundColor:"rgba(200,168,76,.7)",borderColor:"#c9a84c",borderWidth:2,borderRadius:4}];
-  if(prev) ds.push({label:String(year-1),data:prev,backgroundColor:"rgba(91,163,232,.35)",borderColor:"#5ba3e8",borderWidth:2,borderRadius:4});
-  window._ymC=new Chart(ctx,{type:"bar",data:{labels:MONTHS,datasets:ds},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{labels:{color:"#e8ecf0",font:{size:11}}},tooltip:{callbacks:{label:i=>" "+fmt(i.raw)}}},
-      scales:{y:{ticks:{callback:v=>"$"+(v/1e3).toFixed(0)+"K"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
+  const ttl=document.getElementById("yrChartTitle");
+  ttl.textContent="";
+  ttl.appendChild(document.createTextNode(`${year} Monthly Net Sales${prev?` vs ${year-1}`:""}`));
+  if(prev){
+    const lg=document.createElement("span"); lg.className="chartlegend";
+    const i1=document.createElement("i"); i1.style.background="var(--gold)";
+    const i2=document.createElement("i"); i2.style.background="rgba(91,163,232,.55)";
+    lg.appendChild(i1); lg.appendChild(document.createTextNode(String(year)));
+    lg.appendChild(i2); lg.appendChild(document.createTextNode(String(year-1)));
+    ttl.appendChild(lg);
+  }
+  groupedBarChart("yrMoChart", MONTHS, curr, prev, {
+    colorA:"var(--gold)", colorB:"rgba(91,163,232,.55)",
+    titleFn:i=>fmt(curr[i])+(prev?` (${year-1}: ${fmt(prev[i])})`:"")
   });
 }
 
 function renderYrYoYChart(year) {
-  const ctx=document.getElementById("yrYoYChart").getContext("2d");
-  if(year<=2016){if(window._yyC){window._yyC.destroy();window._yyC=null;}return;}
-  const vals=MONTHS.map(m=>{const v=NET[year][m]||0,pv=NET[year-1][m]||0;return pv?+pctN(v,pv).toFixed(1):null;});
-  if(window._yyC) window._yyC.destroy();
-  window._yyC=new Chart(ctx,{type:"bar",
-    data:{labels:MONTHS,datasets:[{label:"% vs "+(year-1),data:vals,
-      backgroundColor:vals.map(v=>v==null?"rgba(120,120,120,.3)":v>=0?"rgba(46,204,113,.7)":"rgba(231,76,60,.7)"),
-      borderColor:vals.map(v=>v==null?"#888":v>=0?"#2ecc71":"#e74c3c"),borderWidth:2,borderRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>i.raw!=null?i.raw+"%":"N/A"}}},
-      scales:{y:{ticks:{callback:v=>v+"%"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
-  });
+  if(year<=2016){ clearHost("yrYoYChart"); return; }
+  barChart("yrYoYChart", MONTHS.map(m=>{
+    const v=NET[year][m]||0, pv=NET[year-1][m]||0;
+    const p=pv?+pctN(v,pv).toFixed(1):0;
+    return {label:m, value:p, title:m+" vs "+(year-1)+": "+(pv?((p>=0?"+":"")+p+"%"):"N/A")};
+  }), {signed:true});
 }
 
 function renderRepYearTable(year, annTotal) {
@@ -976,19 +1030,12 @@ function renderMonth(month, fromYear) {
 
   // Chart
   try {
-    const ctx=document.getElementById("moChart").getContext("2d");
-    if(window._moC){window._moC.destroy();window._moC=null;}
     const chartVals=YEARS.map(y=>NET[y][month]||0);
     const chartBest=Math.max(...chartVals);
-    window._moC=new Chart(ctx,{type:"bar",
-      data:{labels:YEARS.map(String),datasets:[{label:mF+" Net",
-        data:chartVals,
-        backgroundColor:chartVals.map(v=>v===chartBest?"rgba(232,200,74,.9)":"rgba(91,163,232,.65)"),
-        borderColor:chartVals.map(v=>v===chartBest?"#e8c84a":"#5ba3e8"),borderWidth:2,borderRadius:5}]},
-      options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>" "+fmt(i.raw)}}},
-        scales:{y:{ticks:{callback:v=>"$"+(v/1e3).toFixed(0)+"K"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
-    });
+    barChart("moChart", YEARS.map((y,i)=>({
+      label:String(y), value:chartVals[i], highlight:chartVals[i]===chartBest&&chartVals[i]>0,
+      title:y+": "+fmt(chartVals[i]), onClick:()=>navYear(y)
+    })));
   } catch(e) {
     console.error("Chart error:", e);
   }
@@ -1154,17 +1201,10 @@ function renderRepDetail(repName) {
     <div class="kc bl"><div class="kl">Best Single Month</div><div class="kv bl">${bestMo?fmt(bestMo.v):"&#8212;"}</div><div class="ks">${bestMo?`${bestMo.m} ${bestMo.y}`:"&#8212;"}</div></div>
     <div class="kc g"><div class="kl">Years Active</div><div class="kv w">${yrs.length}</div><div class="ks">${yrs.join(", ")}</div></div>`;
 
-  const ctx=document.getElementById("rdChart").getContext("2d");
-  if(window._rdC) window._rdC.destroy();
   const best2=Math.max(...totals.map(x=>x.t));
-  window._rdC=new Chart(ctx,{type:"bar",
-    data:{labels:yrs.map(String),datasets:[{label:"Net Sales",data:totals.map(x=>x.t),
-      backgroundColor:totals.map(x=>x.t===best2?"rgba(232,200,74,.9)":"rgba(91,163,232,.65)"),
-      borderColor:totals.map(x=>x.t===best2?"#e8c84a":"#5ba3e8"),borderWidth:2,borderRadius:5}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>" "+fmt(i.raw)}}},
-      scales:{y:{ticks:{callback:v=>"$"+(v/1e3).toFixed(0)+"K"},grid:{color:"rgba(26,58,92,.4)"}},x:{grid:{display:false}}}}
-  });
+  barChart("rdChart", totals.map(x=>({
+    label:String(x.y), value:x.t, highlight:x.t===best2, title:x.y+": "+fmt(x.t)
+  })));
 
   // Detail table: rows=months, cols=years
   const th=`<thead><tr><th>Month</th>${yrs.map(y=>`<th>${y}</th>`).join("")}<th>Best Year</th></tr></thead>`;
