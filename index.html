@@ -480,7 +480,7 @@ const REPS = {
 const fmt = v => v==null||v===0 ? "—" : "$"+Math.round(v).toLocaleString();
 const fmtK = v => v==null||v===0 ? "—" : "$"+(v/1000).toFixed(0)+"K";
 const fmtM = v => v==null ? "—" : "$"+(v/1000000).toFixed(2)+"M";
-const pctN = (a,b) => (b && b!==0) ? ((a-b)/Math.abs(b)*100) : null;
+const pctN = (a,b) => (a==null || b==null || b===0) ? null : ((a-b)/Math.abs(b)*100);
 const pctS = (a,b) => { const p=pctN(a,b); return p==null?null:p.toFixed(1)+"%"; };
 const aCls = p => p==null?"fl":p>0?"pos":"neg";
 const aStr = p => p==null?"—":p>0?"&#9650; +"+p.toFixed(1)+"%":"&#9660; "+Math.abs(p).toFixed(1)+"%";
